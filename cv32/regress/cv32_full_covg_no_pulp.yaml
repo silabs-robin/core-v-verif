@@ -23,143 +23,143 @@ tests:
     build: uvmt_cv32
     description: uvm_hello_world_test
     dir: cv32/sim/uvmt_cv32
-    cmd: make test TEST=hello-world
+    cmd: make test TEST=hello-world COREV=YES
 
   csr_instructions:
     build: uvmt_cv32
     description: CSR instruction test
     dir: cv32/sim/uvmt_cv32
-    cmd: make test TEST=csr_instructions
+    cmd: make test TEST=csr_instructions COREV=YES
 
   counters:
     build: uvmt_cv32
     description: General counters test
     dir: cv32/sim/uvmt_cv32
-    cmd: make test TEST=counters
+    cmd: make test TEST=counters COREV=YES
 
   generic_exception_test:
     build: uvmt_cv32
     description: Generic exception test
     dir: cv32/sim/uvmt_cv32
-    cmd: make test TEST=generic_exception_test
+    cmd: make test TEST=generic_exception_test COREV=YES
 
   cv32e40p_csr_access_test:
     build: uvmt_cv32
     description: CSR Access Mode Test
     dir: cv32/sim/uvmt_cv32
-    cmd: make test TEST=cv32e40p_csr_access_test
+    cmd: make test TEST=cv32e40p_csr_access_test COREV=YES
 
   requested_csr_por:
     build: uvmt_cv32
     description: CSR PoR test
     dir: cv32/sim/uvmt_cv32
-    cmd: make test TEST=requested_csr_por
+    cmd: make test TEST=requested_csr_por COREV=YES
 
   modeled_csr_por:
     build: uvmt_cv32
     description: Modeled CSR PoR test
     dir: cv32/sim/uvmt_cv32
-    cmd: make test TEST=modeled_csr_por
+    cmd: make test TEST=modeled_csr_por COREV=YES
 
   csr_instr_asm:
     build: uvmt_cv32
     description: CSR instruction assembly test
     dir: cv32/sim/uvmt_cv32
-    cmd: make test TEST=csr_instr_asm
+    cmd: make test TEST=csr_instr_asm COREV=YES
 
   perf_counters_instructions:
     build: uvmt_cv32
     description: Performance counter test
     dir: cv32/sim/uvmt_cv32
-    cmd: make test TEST=perf_counters_instructions
+    cmd: make test TEST=perf_counters_instructions COREV=YES
 
   hpmcounter_basic_test:
     build: uvmt_cv32
     description: Hardware performance counter basic test
     dir: cv32/sim/uvmt_cv32
-    cmd: make test TEST=hpmcounter_basic_test
+    cmd: make test TEST=hpmcounter_basic_test COREV=YES
 
   riscv_ebreak_test_0:
     build: uvmt_cv32
     description: Static corev-dv ebreak
     dir: cv32/sim/uvmt_cv32
-    cmd: make test TEST=riscv_ebreak_test_0
+    cmd: make test TEST=riscv_ebreak_test_0 COREV=YES
 
   riscv_arithmetic_basic_test:
     build: uvmt_cv32
     description: Static riscv-dv arithmetic test
     dir: cv32/sim/uvmt_cv32    
-    cmd: make test TEST=riscv_arithmetic_basic_test
+    cmd: make test TEST=riscv_arithmetic_basic_test COREV=YES
     num: 1
 
   corev_arithmetic_base_test:
     build: uvmt_cv32
     description: Generated corev-dv arithmetic test
     dir: cv32/sim/uvmt_cv32    
-    cmd: make gen_corev-dv test TEST=corev_arithmetic_base_test
+    cmd: make gen_corev-dv test TEST=corev_arithmetic_base_test COREV=YES
     num: 200
 
   corev_rand_instr_test:
     build: uvmt_cv32
     description: Generated corev-dv random instruction test
     dir: cv32/sim/uvmt_cv32
-    cmd: make gen_corev-dv test TEST=corev_rand_instr_test
+    cmd: make gen_corev-dv test TEST=corev_rand_instr_test COREV=YES
     num: 200
 
   corev_rand_illegal_instr_test:
     build: uvmt_cv32
     description: Generated corev-dv random instruction test with illegal instructions
     dir: cv32/sim/uvmt_cv32
-    cmd: make gen_corev-dv test TEST=corev_rand_illegal_instr_test
+    cmd: make gen_corev-dv test TEST=corev_rand_illegal_instr_test COREV=YES
     num: 200
 
   corev_jump_stress_test:
     build: uvmt_cv32
     description: Generated corev-dv jump stress test
     dir: cv32/sim/uvmt_cv32    
-    cmd: make gen_corev-dv test TEST=corev_jump_stress_test
+    cmd: make gen_corev-dv test TEST=corev_jump_stress_test COREV=YES
     num: 200
 
   corev_rand_interrupt:
     build: uvmt_cv32
     description: Generated corev-dv random interrupt test
     dir: cv32/sim/uvmt_cv32    
-    cmd: make gen_corev-dv test TEST=corev_rand_interrupt
+    cmd: make gen_corev-dv test TEST=corev_rand_interrupt COREV=YES
     num: 200
 
   corev_rand_debug:
     build: uvmt_cv32
     description: Generated corev-dv random debug test
     dir: cv32/sim/uvmt_cv32    
-    cmd: make gen_corev-dv test TEST=corev_rand_debug
+    cmd: make gen_corev-dv test TEST=corev_rand_debug COREV=YES
     num: 50
 
   corev_rand_debug_single_step:
     build: uvmt_cv32
     description: debug random test with single-stepping
     dir: cv32/sim/uvmt_cv32
-    cmd: make gen_corev-dv test TEST=corev_rand_debug_single_step
+    cmd: make gen_corev-dv test TEST=corev_rand_debug_single_step COREV=YES
     num: 50
 
   corev_rand_debug_ebreak:
     build: uvmt_cv32
     description: debug random test with ebreaks from ROM
     dir: cv32/sim/uvmt_cv32
-    cmd: make gen_corev-dv test TEST=corev_rand_debug_ebreak
+    cmd: make gen_corev-dv test TEST=corev_rand_debug_ebreak COREV=YES
     num: 50
 
   corev_rand_interrupt_wfi:
     build: uvmt_cv32
     description: Generated corev-dv random interrupt WFI test
     dir: cv32/sim/uvmt_cv32    
-    cmd: make gen_corev-dv test TEST=corev_rand_interrupt_wfi
+    cmd: make gen_corev-dv test TEST=corev_rand_interrupt_wfi COREV=YES
     num: 200
 
   corev_rand_interrupt_nested:
     build: uvmt_cv32
     description: Generated corev-dv random interrupt WFI test with random nested interrupts
     dir: cv32/sim/uvmt_cv32    
-    cmd: make gen_corev-dv test TEST=corev_rand_interrupt_nested
+    cmd: make gen_corev-dv test TEST=corev_rand_interrupt_nested COREV=YES
     num: 200
 
   illegal:
@@ -196,16 +196,16 @@ tests:
     build: uvmt_cv32
     description: Interrupt bootstrap test
     dir: cv32/sim/uvmt_cv32
-    cmd: make test TEST=interrupt_bootstrap
+    cmd: make test TEST=interrupt_bootstrap COREV=YES
 
   interrupt_test:
     build: uvmt_cv32
     description: Interrupt test
     dir: cv32/sim/uvmt_cv32
-    cmd: make test TEST=interrupt_test
+    cmd: make test TEST=interrupt_test COREV=YES
 
   isa_fcov_holes:
     build: uvmt_cv32
     description: ISA function coverage test
     dir: cv32/sim/uvmt_cv32
-    cmd: make test TEST=isa_fcov_holes
+    cmd: make test TEST=isa_fcov_holes COREV=YES
