@@ -176,11 +176,20 @@ parameter VEC_MODE16 = 2'b10;
 parameter VEC_MODE8  = 2'b11;
 
 
-  // FSM state encoding
-  typedef enum  logic [4:0] { RESET, BOOT_SET, SLEEP, WAIT_SLEEP, FIRST_FETCH,
-                      DECODE, IRQ_FLUSH_ELW, ELW_EXE, FLUSH_EX, FLUSH_WB, XRET_JUMP,
-                      DBG_TAKEN_ID, DBG_TAKEN_IF, DBG_FLUSH, DBG_WAIT_BRANCH, DECODE_HWLOOP } ctrl_state_e;
+// FSM state encoding
+typedef enum logic [4:0] { RESET, BOOT_SET, SLEEP, WAIT_SLEEP, FIRST_FETCH,
+                   DECODE, IRQ_FLUSH_ELW, ELW_EXE, FLUSH_EX, FLUSH_WB, XRET_JUMP,
+                   DBG_TAKEN_ID, DBG_TAKEN_IF, DBG_FLUSH, DBG_WAIT_BRANCH, DECODE_HWLOOP } ctrl_state_e;
 
+// Debug FSM state encoding
+// State encoding done one-hot to ensure that debug_havereset_o, debug_running_o, debug_halted_o
+// will come directly from flip-flops. *_INDEX and debug_state_e encoding must match
+
+parameter HAVERESET_INDEX = 0;
+parameter RUNNING_INDEX = 1;
+parameter HALTED_INDEX = 2;
+
+typedef enum logic [2:0] { HAVERESET = 3'b001, RUNNING = 3'b010, HALTED = 3'b100 } debug_state_e;
 
 /////////////////////////////////////////////////////////
 //    ____ ____    ____            _     _             //
@@ -679,11 +688,6 @@ parameter bit C_XF16    = 1'b0; // Is half-precision float extension (Xf16) enab
 parameter bit C_XF16ALT = 1'b0; // Is alternative half-precision float extension (Xf16alt) enabled
 parameter bit C_XF8     = 1'b0; // Is quarter-precision float extension (Xf8) enabled
 parameter bit C_XFVEC   = 1'b0; // Is vectorial float extension (Xfvec) enabled
-
-// FPnew configuration
-parameter C_FPNEW_OPBITS   = fpnew_pkg::OP_BITS;
-parameter C_FPNEW_FMTBITS  = fpnew_pkg::FP_FORMAT_BITS;
-parameter C_FPNEW_IFMTBITS = fpnew_pkg::INT_FORMAT_BITS;
 
 // Latency of FP operations: 0 = no pipe registers, 1 = 1 pipe register etc.
 parameter int unsigned C_LAT_FP64       = 'd0;

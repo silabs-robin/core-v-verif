@@ -39,7 +39,6 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   parameter APU               =  0,
   parameter FPU               =  0,
   parameter PULP_ZFINX        =  0,
-  parameter WAPUTYPE          =  0,
   parameter APU_NARGS_CPU     =  3,
   parameter APU_WOP_CPU       =  6,
   parameter APU_NDSFLAGS_CPU  = 15,
@@ -215,6 +214,9 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     input  logic        debug_ebreaku_i,
     input  logic        trigger_match_i,
     output logic        debug_p_elw_no_sleep_o,
+    output logic        debug_havereset_o,
+    output logic        debug_running_o,
+    output logic        debug_halted_o,
 
     // Wakeup Signal
     output logic        wake_from_sleep_o,
@@ -368,9 +370,9 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [1:0]  mult_dot_signed;  // Signed mode dot products (can be mixed types)
 
   // FPU signals
-  logic [C_FPNEW_FMTBITS-1:0]  fpu_src_fmt;
-  logic [C_FPNEW_FMTBITS-1:0]  fpu_dst_fmt;
-  logic [C_FPNEW_IFMTBITS-1:0] fpu_int_fmt;
+  logic [cv32e40p_fpu_pkg::FP_FORMAT_BITS-1:0]  fpu_src_fmt;
+  logic [cv32e40p_fpu_pkg::FP_FORMAT_BITS-1:0]  fpu_dst_fmt;
+  logic [cv32e40p_fpu_pkg::INT_FORMAT_BITS-1:0] fpu_int_fmt;
 
   // APU signals
   logic                        apu_en;
@@ -385,7 +387,6 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   logic [1:0][5:0]            apu_write_regs;
   logic [1:0]                 apu_write_regs_valid;
 
-  logic [WAPUTYPE-1:0]        apu_flags_src;
   logic                       apu_stall;
   logic [2:0]                 fp_rnd_mode;
 
@@ -799,26 +800,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
       assign apu_waddr = regfile_alu_waddr_id;
 
       // flags
-      always_comb begin
-        unique case (apu_flags_src)
-          APU_FLAGS_INT_MULT:
-            apu_flags = {7'h0 , mult_imm_id, mult_signed_mode, mult_sel_subword};
-          APU_FLAGS_DSP_MULT:
-            apu_flags = {13'h0, mult_dot_signed};
-          APU_FLAGS_FP:
-            if (FPU == 1)
-              apu_flags = fp_rnd_mode;
-            else
-              apu_flags = '0;
-          APU_FLAGS_FPNEW:
-            if (FPU == 1)
-              apu_flags = {fpu_int_fmt, fpu_src_fmt, fpu_dst_fmt, fp_rnd_mode};
-            else
-              apu_flags = '0;
-          default:
-            apu_flags = '0;
-        endcase
-       end
+      assign apu_flags = (FPU == 1) ? {fpu_int_fmt, fpu_src_fmt, fpu_dst_fmt, fp_rnd_mode} : '0;
 
       // dependency checks
       always_comb begin
@@ -973,7 +955,6 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
       .FPU                 ( FPU                  ),
       .PULP_SECURE         ( PULP_SECURE          ),
       .USE_PMP             ( USE_PMP              ),
-      .WAPUTYPE            ( WAPUTYPE             ),
       .APU_WOP_CPU         ( APU_WOP_CPU          ),
       .DEBUG_TRIGGER_EN    ( DEBUG_TRIGGER_EN     )
       )
@@ -1048,7 +1029,6 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .apu_en_o                        ( apu_en                    ),
     .apu_op_o                        ( apu_op                    ),
     .apu_lat_o                       ( apu_lat                   ),
-    .apu_flags_src_o                 ( apu_flags_src             ),
     .fp_rnd_mode_o                   ( fp_rnd_mode               ),
 
     // Register file control signals
@@ -1210,6 +1190,9 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     .trigger_match_i                ( trigger_match_i        ),
     .debug_p_elw_no_sleep_o         ( debug_p_elw_no_sleep_o ),
     .debug_wfi_no_sleep_o           ( debug_wfi_no_sleep     ),
+    .debug_havereset_o              ( debug_havereset_o      ),
+    .debug_running_o                ( debug_running_o        ),
+    .debug_halted_o                 ( debug_halted_o         ),
 
     // Wakeup Signal
     .wake_from_sleep_o              ( wake_from_sleep_o      ),
@@ -1706,8 +1689,8 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
 
     always_comb begin
       if (FPU==1) begin
-        assert (APU_NDSFLAGS_CPU >= C_RM+2*C_FPNEW_FMTBITS+C_FPNEW_IFMTBITS)
-          else $error("[apu] APU_NDSFLAGS_CPU APU flagbits is smaller than %0d", C_RM+2*C_FPNEW_FMTBITS+C_FPNEW_IFMTBITS);
+        assert (APU_NDSFLAGS_CPU >= C_RM+2*cv32e40p_fpu_pkg::FP_FORMAT_BITS+cv32e40p_fpu_pkg::INT_FORMAT_BITS)
+          else $error("[apu] APU_NDSFLAGS_CPU APU flagbits is smaller than %0d", C_RM+2*cv32e40p_fpu_pkg::FP_FORMAT_BITS+cv32e40p_fpu_pkg::INT_FORMAT_BITS);
       end
     end
 

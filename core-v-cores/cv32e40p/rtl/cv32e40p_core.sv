@@ -70,18 +70,16 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
 
   // apu-interconnect
   // handshake signals
-  output logic                           apu_master_req_o,
-  output logic                           apu_master_ready_o,
-  input logic                            apu_master_gnt_i,
+  output logic                           apu_req_o,
+  input logic                            apu_gnt_i,
   // request channel
-  output logic [APU_NARGS_CPU-1:0][31:0] apu_master_operands_o,
-  output logic [APU_WOP_CPU-1:0]         apu_master_op_o,
-  output logic [WAPUTYPE-1:0]            apu_master_type_o,
-  output logic [APU_NDSFLAGS_CPU-1:0]    apu_master_flags_o,
+  output logic [APU_NARGS_CPU-1:0][31:0] apu_operands_o,
+  output logic [APU_WOP_CPU-1:0]         apu_op_o,
+  output logic [APU_NDSFLAGS_CPU-1:0]    apu_flags_o,
   // response channel
-  input logic                            apu_master_valid_i,
-  input logic [31:0]                     apu_master_result_i,
-  input logic [APU_NUSFLAGS_CPU-1:0]     apu_master_flags_i,
+  input logic                            apu_rvalid_i,
+  input logic [31:0]                     apu_result_i,
+  input logic [APU_NUSFLAGS_CPU-1:0]     apu_flags_i,
 
   // Interrupt inputs
   input  logic [31:0] irq_i,                    // CLINT interrupts + CLINT extension interrupts
@@ -90,7 +88,9 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
 
   // Debug Interface
   input  logic        debug_req_i,
-
+  output logic        debug_havereset_o,
+  output logic        debug_running_o,
+  output logic        debug_halted_o,
 
   // CPU Control Signals
   input  logic        fetch_enable_i,
@@ -365,9 +365,8 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
   assign irq_sec_i = 1'b0;
 
   // APU master signals
-  assign apu_master_type_o  = '0;
-  assign apu_master_flags_o = apu_flags_ex;
-  assign fflags_csr         = apu_master_flags_i;
+  assign apu_flags_o = apu_flags_ex;
+  assign fflags_csr  = apu_flags_i;
 
   //////////////////////////////////////////////////////////////////////////////////////////////
   //   ____ _            _      __  __                                                   _    //
@@ -527,7 +526,6 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .APU                          ( APU                  ),
     .FPU                          ( FPU                  ),
     .PULP_ZFINX                   ( PULP_ZFINX           ),
-    .WAPUTYPE                     ( WAPUTYPE             ),
     .APU_NARGS_CPU                ( APU_NARGS_CPU        ),
     .APU_WOP_CPU                  ( APU_WOP_CPU          ),
     .APU_NDSFLAGS_CPU             ( APU_NDSFLAGS_CPU     ),
@@ -702,6 +700,9 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
     .debug_cause_o                ( debug_cause          ),
     .debug_csr_save_o             ( debug_csr_save       ),
     .debug_req_i                  ( debug_req_i          ),
+    .debug_havereset_o            ( debug_havereset_o    ),
+    .debug_running_o              ( debug_running_o      ),
+    .debug_halted_o               ( debug_halted_o       ),
     .debug_single_step_i          ( debug_single_step    ),
     .debug_ebreakm_i              ( debug_ebreakm        ),
     .debug_ebreaku_i              ( debug_ebreaku        ),
@@ -823,15 +824,14 @@ module cv32e40p_core import cv32e40p_apu_core_pkg::*;
 
     // apu-interconnect
     // handshake signals
-    .apu_master_req_o           ( apu_master_req_o             ),
-    .apu_master_ready_o         ( apu_master_ready_o           ),
-    .apu_master_gnt_i           ( apu_master_gnt_i             ),
+    .apu_req_o                  ( apu_req_o                    ),
+    .apu_gnt_i                  ( apu_gnt_i                    ),
     // request channel
-    .apu_master_operands_o      ( apu_master_operands_o        ),
-    .apu_master_op_o            ( apu_master_op_o              ),
+    .apu_operands_o             ( apu_operands_o               ),
+    .apu_op_o                   ( apu_op_o                     ),
     // response channel
-    .apu_master_valid_i         ( apu_master_valid_i           ),
-    .apu_master_result_i        ( apu_master_result_i          ),
+    .apu_rvalid_i               ( apu_rvalid_i                 ),
+    .apu_result_i               ( apu_result_i                 ),
 
     .lsu_en_i                   ( data_req_ex                  ),
     .lsu_rdata_i                ( lsu_rdata                    ),

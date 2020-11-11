@@ -67,18 +67,16 @@ module cv32e40p_wrapper import cv32e40p_apu_core_pkg::*;
 
   // apu-interconnect
   // handshake signals
-  output logic                           apu_master_req_o,
-  output logic                           apu_master_ready_o,
-  input logic                            apu_master_gnt_i,
+  output logic                           apu_req_o,
+  input logic                            apu_gnt_i,
   // request channel
-  output logic [APU_NARGS_CPU-1:0][31:0] apu_master_operands_o,
-  output logic [APU_WOP_CPU-1:0]         apu_master_op_o,
-  output logic [WAPUTYPE-1:0]            apu_master_type_o,
-  output logic [APU_NDSFLAGS_CPU-1:0]    apu_master_flags_o,
+  output logic [APU_NARGS_CPU-1:0][31:0] apu_operands_o,
+  output logic [APU_WOP_CPU-1:0]         apu_op_o,
+  output logic [APU_NDSFLAGS_CPU-1:0]    apu_flags_o,
   // response channel
-  input logic                            apu_master_valid_i,
-  input logic [31:0]                     apu_master_result_i,
-  input logic [APU_NUSFLAGS_CPU-1:0]     apu_master_flags_i,
+  input logic                            apu_rvalid_i,
+  input logic [31:0]                     apu_result_i,
+  input logic [APU_NUSFLAGS_CPU-1:0]     apu_flags_i,
 
   // Interrupt inputs
   input  logic [31:0] irq_i,                    // CLINT interrupts + CLINT extension interrupts
@@ -87,7 +85,9 @@ module cv32e40p_wrapper import cv32e40p_apu_core_pkg::*;
 
   // Debug Interface
   input  logic        debug_req_i,
-
+  output logic        debug_havereset_o,
+  output logic        debug_running_o,
+  output logic        debug_halted_o,
 
   // CPU Control Signals
   input  logic        fetch_enable_i,
@@ -149,6 +149,7 @@ module cv32e40p_wrapper import cv32e40p_apu_core_pkg::*;
       .id_valid       ( core_i.id_stage_i.id_valid_o                ),
       .is_decoding    ( core_i.id_stage_i.is_decoding_o             ),
       .is_illegal     ( core_i.id_stage_i.illegal_insn_dec          ),
+      .trigger_match  ( core_i.id_stage_i.trigger_match_i           ),
       .rs1_value      ( core_i.id_stage_i.operand_a_fw_id           ),
       .rs2_value      ( core_i.id_stage_i.operand_b_fw_id           ),
       .rs3_value      ( core_i.id_stage_i.alu_operand_c             ),
@@ -170,6 +171,10 @@ module cv32e40p_wrapper import cv32e40p_apu_core_pkg::*;
       .ex_data_we     ( core_i.data_we_o                            ),
       .ex_data_wdata  ( core_i.data_wdata_o                         ),
       .data_misaligned ( core_i.data_misaligned                     ),
+
+      .ebrk_insn      ( core_i.id_stage_i.ebrk_insn_dec             ),
+      .debug_mode     ( core_i.debug_mode                           ),
+      .ebrk_force_debug_mode ( core_i.id_stage_i.controller_i.ebrk_force_debug_mode ),
 
       .wb_bypass      ( core_i.ex_stage_i.branch_in_ex_i            ),
 
