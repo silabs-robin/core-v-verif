@@ -1074,10 +1074,6 @@ module cv32e40p_controller import cv32e40p_pkg::*;
                     pc_set_o          = 1'b1;
                     hwlp_dec_cnt_o[1] = 1'b1;
                 end
-
-                 if (debug_single_step_i && ~debug_mode_q)
-                    ctrl_fsm_ns = DBG_TAKEN_IF;
-
               end
 
               wfi_i: begin
@@ -1085,10 +1081,7 @@ module cv32e40p_controller import cv32e40p_pkg::*;
                       ctrl_fsm_ns = DBG_TAKEN_IF;
                       debug_force_wakeup_n = 1'b1;
                   end else begin
-                      if ( wfi_active )
-                          ctrl_fsm_ns = WAIT_SLEEP;
-                      else
-                          ctrl_fsm_ns = DECODE;
+                    ctrl_fsm_ns = WAIT_SLEEP;
                   end
               end
               fencei_insn_i: begin
@@ -1252,7 +1245,7 @@ module cv32e40p_controller import cv32e40p_pkg::*;
 
 
 generate
-  if(PULP_XPULP) begin
+  if(PULP_XPULP) begin : gen_hwlp
     //////////////////////////////////////////////////////////////////////////////
     // Convert hwlp_jump_o to a pulse
     //////////////////////////////////////////////////////////////////////////////
@@ -1286,7 +1279,7 @@ generate
     assign hwlp_end1_geq_pc        = hwlp_end_addr_i[1] >= pc_id_i;
     assign is_hwlp_body            = ((hwlp_start0_leq_pc && hwlp_end0_geq_pc) && hwlp_counter0_gt_1) ||  ((hwlp_start1_leq_pc && hwlp_end1_geq_pc) && hwlp_counter1_gt_1);
 
-  end else begin
+  end else begin : gen_no_hwlp
 
     assign hwlp_jump_o             = 1'b0;
     assign hwlp_end_4_id_q         = 1'b0;
@@ -1547,7 +1540,7 @@ endgenerate
   a_pulp_cluster_excluded_states : assert property(p_pulp_cluster_excluded_states);
 
   generate
-  if (PULP_XPULP) begin
+  if (PULP_XPULP) begin : gen_pulp_xpulp_assertions
 
     // HWLoop 0 and 1 having target address constraints
     property p_hwlp_same_target_address;
@@ -1556,7 +1549,7 @@ endgenerate
 
     a_hwlp_same_target_address : assert property(p_hwlp_same_target_address) else $warning("%t, HWLoops target address do not respect constraints", $time);
 
-  end else begin
+  end else begin : gen_no_pulp_xpulp_assertions
 
     property p_no_hwlp;
        @(posedge clk) (1'b1) |-> ((pc_mux_o != PC_HWLOOP) && (ctrl_fsm_cs != DECODE_HWLOOP) &&
