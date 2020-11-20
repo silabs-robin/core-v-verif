@@ -76,24 +76,24 @@ typedef enum {
     ,dscratch0,dscratch1
 
     ,mhpmevent3
-    ,mhpmevent4,mhpmevent5,mhpmevent6,mhpmevent7,mhpmevent8,mhpmevent9
-    ,mhpmevent10,mhpmevent11,mhpmevent12,mhpmevent13,mhpmevent14,mhpmevent15,mhpmevent16,mhpmevent17
-    ,mhpmevent18,mhpmevent19,mhpmevent20,mhpmevent21,mhpmevent22,mhpmevent23,mhpmevent24,mhpmevent25
-    ,mhpmevent26,mhpmevent27,mhpmevent28,mhpmevent29,mhpmevent30,mhpmevent31
+//    ,mhpmevent4,mhpmevent5,mhpmevent6,mhpmevent7,mhpmevent8,mhpmevent9
+    //,mhpmevent10,mhpmevent11,mhpmevent12,mhpmevent13,mhpmevent14,mhpmevent15,mhpmevent16,mhpmevent17
+    //,mhpmevent18,mhpmevent19,mhpmevent20,mhpmevent21,mhpmevent22,mhpmevent23,mhpmevent24,mhpmevent25
+    //,mhpmevent26,mhpmevent27,mhpmevent28,mhpmevent29,mhpmevent30,mhpmevent31
 
     ,mhpmcounter3
-    ,mhpmcounter4,mhpmcounter5,mhpmcounter6,mhpmcounter7,mhpmcounter8,mhpmcounter9
-    ,mhpmcounter10,mhpmcounter11,mhpmcounter12,mhpmcounter13,mhpmcounter14,mhpmcounter15,mhpmcounter16
-    ,mhpmcounter17,mhpmcounter18,mhpmcounter19,mhpmcounter20,mhpmcounter21,mhpmcounter22,mhpmcounter23
-    ,mhpmcounter24,mhpmcounter25,mhpmcounter26,mhpmcounter27,mhpmcounter28,mhpmcounter29,mhpmcounter30
-    ,mhpmcounter31
+    //,mhpmcounter4,mhpmcounter5,mhpmcounter6,mhpmcounter7,mhpmcounter8,mhpmcounter9
+    //,mhpmcounter10,mhpmcounter11,mhpmcounter12,mhpmcounter13,mhpmcounter14,mhpmcounter15,mhpmcounter16
+    //,mhpmcounter17,mhpmcounter18,mhpmcounter19,mhpmcounter20,mhpmcounter21,mhpmcounter22,mhpmcounter23
+    //,mhpmcounter24,mhpmcounter25,mhpmcounter26,mhpmcounter27,mhpmcounter28,mhpmcounter29,mhpmcounter30
+    //,mhpmcounter31
 
     ,mhpmcounterh3
-    ,mhpmcounterh4,mhpmcounterh5,mhpmcounterh6,mhpmcounterh7,mhpmcounterh8,mhpmcounterh9
-    ,mhpmcounterh10,mhpmcounterh11,mhpmcounterh12,mhpmcounterh13,mhpmcounterh14,mhpmcounterh15,mhpmcounterh16
-    ,mhpmcounterh17,mhpmcounterh18,mhpmcounterh19,mhpmcounterh20,mhpmcounterh21,mhpmcounterh22,mhpmcounterh23
-    ,mhpmcounterh24,mhpmcounterh25,mhpmcounterh26,mhpmcounterh27,mhpmcounterh28,mhpmcounterh29,mhpmcounterh30
-    ,mhpmcounterh31
+    //,mhpmcounterh4,mhpmcounterh5,mhpmcounterh6,mhpmcounterh7,mhpmcounterh8,mhpmcounterh9
+    //,mhpmcounterh10,mhpmcounterh11,mhpmcounterh12,mhpmcounterh13,mhpmcounterh14,mhpmcounterh15,mhpmcounterh16
+    //,mhpmcounterh17,mhpmcounterh18,mhpmcounterh19,mhpmcounterh20,mhpmcounterh21,mhpmcounterh22,mhpmcounterh23
+    //,mhpmcounterh24,mhpmcounterh25,mhpmcounterh26,mhpmcounterh27,mhpmcounterh28,mhpmcounterh29,mhpmcounterh30
+    //,mhpmcounterh31
 //
 //    ,mideleg
 //    ,pmpaddr0,pmpaddr1,pmpaddr10,pmpaddr11,pmpaddr12,pmpaddr13,pmpaddr14
