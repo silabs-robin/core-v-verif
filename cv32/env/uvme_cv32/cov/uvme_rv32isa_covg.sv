@@ -273,7 +273,8 @@ class uvme_rv32isa_covg extends uvm_component;
     endfunction
 
     function int get_imm(string s, asm);
-      int val;
+        int val;
+
         if (s[1] == "x") begin
             s = s.substr(2,s.len()-1);
             val = s.atohex ();
@@ -284,6 +285,7 @@ class uvme_rv32isa_covg extends uvm_component;
             val = s.atohex();
         end
         `uvm_info("RV32ISA Coverage", $sformatf("get_imm: Convert %s (%s) to 0x%0x (%0d)", s, asm, val, val), UVM_DEBUG)
+
         return val;
     endfunction
 
@@ -1054,7 +1056,11 @@ class uvme_rv32isa_covg extends uvm_component;
         cp_rd    : coverpoint get_gpr_name(ins.ops[0].val, ins.ops[0].key, "csrrci") {
           bins gprval[] = {[zero:t6]};
         }
-        cp_csr   : coverpoint get_csr_name(ins.ops[1].val, ins.ops[1].key, "csrrci");
+        cp_csr   : coverpoint get_csr_name(ins.ops[1].val, ins.ops[1].key, "csrrci") {
+          // RM does not emit coverage transactions for illegal instructions and
+          // CV32E40P treats csrrci rd, ro_csrs, zimm as an illegal instruction
+          ignore_bins ro_csrs = {mhartid, mimpid, mvendorid};
+        }
         cp_zimm  : coverpoint get_imm(ins.ops[2].val, "csrrci") {
           bins low  = {[5'b00000:5'b10000]};
           bins high = {[5'b10001:5'b11111]};
@@ -1088,7 +1094,11 @@ class uvme_rv32isa_covg extends uvm_component;
         cp_rd    : coverpoint get_gpr_name(ins.ops[0].val, ins.ops[0].key, "csrrsi") {
           bins gprval[] = {[zero:t6]};
         }
-        cp_csr   : coverpoint get_csr_name(ins.ops[1].val, ins.ops[1].key, "csrrsi");
+        cp_csr   : coverpoint get_csr_name(ins.ops[1].val, ins.ops[1].key, "csrrsi") {
+          // RM does not emit coverage transactions for illegal instructions and
+          // CV32E40P treats csrrsi rd, ro_csrs, zimm as an illegal instruction
+          ignore_bins ro_csrs = {mhartid, mimpid, mvendorid};
+        }
         cp_zimm  : coverpoint get_imm(ins.ops[2].val, "csrrsi") {
           bins low  = {[5'b00000:5'b10000]};
           bins high = {[5'b10001:5'b11111]};
@@ -1100,7 +1110,11 @@ class uvme_rv32isa_covg extends uvm_component;
         cp_rd    : coverpoint get_gpr_name(ins.ops[0].val, ins.ops[0].key, "csrrw") {
           bins gprval[] = {[zero:t6]};
         }
-        cp_csr   : coverpoint get_csr_name(ins.ops[1].val, ins.ops[1].key, "csrrw");
+        cp_csr   : coverpoint get_csr_name(ins.ops[1].val, ins.ops[1].key, "csrrw") {
+          // RM does not emit coverage transactions for illegal instructions and
+          // CV32E40P treats csrrw rd, ro_csrs, zimm as an illegal instruction
+          ignore_bins ro_csrs = {mhartid, mimpid, mvendorid};
+        }
         cp_rs1   : coverpoint get_gpr_name(ins.ops[2].val, ins.ops[2].key, "csrrw") {
           bins gprval[] = {[zero:t6]};
         }
@@ -1111,7 +1125,11 @@ class uvme_rv32isa_covg extends uvm_component;
         cp_rd    : coverpoint get_gpr_name(ins.ops[0].val, ins.ops[0].key, "csrrwi") {
           bins gprval[] = {[zero:t6]};
         }
-        cp_csr   : coverpoint get_csr_name(ins.ops[1].val, ins.ops[1].key, "csrrwi");
+        cp_csr   : coverpoint get_csr_name(ins.ops[1].val, ins.ops[1].key, "csrrwi") {
+          // RM does not emit coverage transactions for illegal instructions and
+          // CV32E40P treats csrrwi rd, ro_csrs, zimm as an illegal instruction
+          ignore_bins ro_csrs = {mhartid, mimpid, mvendorid};
+        }
         cp_zimm  : coverpoint get_imm(ins.ops[2].val, "csrrwi") {
           bins low  = {[5'b00000:5'b10000]};
           bins high = {[5'b10001:5'b11111]};
@@ -1243,7 +1261,8 @@ class uvme_rv32isa_covg extends uvm_component;
             bins gprval[] = {zero,ra,[gp:t6]}; // invalid when rd = x2 (sp)            
         }
         cp_imm6   : coverpoint get_imm(ins.ops[1].val,"c.lui" ) {    
-            bins neg  = {[$:-1]};
+            // Represents sign-extended negative numbers for nzimm6
+            bins neg  = {['hfffe0:'hfffff]};
             // invalid when imm = 0
             bins pos  = {[1:$]};
         }
@@ -1309,7 +1328,7 @@ class uvme_rv32isa_covg extends uvm_component;
             bins gprval[] = {[s0:a5]};
         }
         cp_shamt5   : coverpoint get_imm(ins.ops[2].val, "c.slli" ) {
-            // Note that zero is reserved (used for HINTs)
+            bins zero = {0};
             bins pos  = {[1:$]};
         }
     endgroup
@@ -1323,8 +1342,8 @@ class uvme_rv32isa_covg extends uvm_component;
         cp_rs1   : coverpoint get_gpr_name(ins.ops[1].val, ins.ops[1].key, "c.srli") {
             bins gprval[] = {[s0:a5]};
         }
-        cp_shamt5   : coverpoint get_imm(ins.ops[2].val, "c.srli" ) {
-            // Note that zero is reserved (used for HINTs)
+        cp_shamt5   : coverpoint get_imm(ins.ops[2].val, "c.srli" ) {            
+            bins zero = {0};
             bins pos  = {[1:$]};
         }
     endgroup
@@ -1340,8 +1359,8 @@ class uvme_rv32isa_covg extends uvm_component;
         cp_rs1   : coverpoint get_gpr_name(ins.ops[1].val, ins.ops[1].key, "c.srai") {
             bins gprval[] = {[s0:a5]};
         }
-        cp_shamt5   : coverpoint get_imm(ins.ops[2].val, "c.srai" ) {
-            // Note that zero is reserved (used for HINTs)
+        cp_shamt5   : coverpoint get_imm(ins.ops[2].val, "c.srai" ) {            
+            bins zero = {0};
             bins pos  = {[1:$]};
         }
     endgroup
@@ -1796,7 +1815,12 @@ class uvme_rv32isa_covg extends uvm_component;
                 "csrrs"     : begin ins.asm=CSRRS;  csrrs_cg.sample(ins);  end
                 "csrrc"     : begin ins.asm=CSRRC;  csrrc_cg.sample(ins);  end
                 "csrrwi"    : begin ins.asm=CSRRWI; csrrwi_cg.sample(ins); end
-                "csrrci"    : begin ins.asm=CSRRCI; csrrci_cg.sample(ins); end
+                "csrrci"    : begin
+                  ins.asm=CSRRCI;
+                  csrrci_cg.sample(ins);
+                  `uvm_info("RV32ISA Functional Coverage", $sformatf("csrrci_cg: ins.ops[0].val = %0s, ins.ops[1].val = %0s, ins.ops[2].val = %0s, imm = %0h",
+                                                                     ins.ops[0].val, ins.ops[1].val, ins.ops[2].val, get_imm(ins.ops[2].val,"beq")), UVM_DEBUG)
+			    end
                 "csrrsi"    : begin ins.asm=CSRRSI; csrrsi_cg.sample(ins); end                
 
                 "csrw"      : begin ins.asm=CSRRW;  ins.ops[2] = ins.ops[1]; ins.ops[1] = ins.ops[0]; ins.ops[0].val = "zero"; csrrw_cg.sample(ins); end
@@ -1842,7 +1866,7 @@ class uvme_rv32isa_covg extends uvm_component;
                         ins.ops[0].key, ins.ops[0].val,
                         ins.ops[1].key, ins.ops[1].val,
                         ins.ops[2].key, ins.ops[2].val),
-                        UVM_LOW)
+                        UVM_DEBUG)
 
                     jalr_cg.sample(ins);
                 end
@@ -1871,7 +1895,7 @@ class uvme_rv32isa_covg extends uvm_component;
                 // seqz: convert to sltiu rd, rs, 1
                 "seqz"      : begin ins.asm=SLTIU;  ins.ops[2].val = "1";                             sltiu_cg.sample(ins);  end
                 // not:  convert to xor rd, rs, -1
-                "not"       : begin ins.asm=XOR;    ins.ops[2].val = "-1";                            xor_cg.sample(ins);  end
+                "not"       : begin ins.asm=XOR;    ins.ops[2].val = "-1";                            xori_cg.sample(ins);  end
                 // ret: convert to jalr x0,x1(0)                
                 "ret"       : begin ins.asm=JALR;   ins.ops[0].key = "R"; ins.ops[0].val = "zero"; 
                                                     ins.ops[1].key = "R"; ins.ops[1].val = "ra"; 
