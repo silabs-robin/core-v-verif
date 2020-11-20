@@ -127,30 +127,30 @@ module cv32e40p_wrapper import cv32e40p_apu_core_pkg::*;
           .APU_NUSFLAGS_CPU ( APU_NUSFLAGS_CPU ),
           .DEBUG_TRIGGER_EN ( DEBUG_TRIGGER_EN ))
       id_stage_sva (.*,
-	                // Internal nets from cv32e40p_prefetch_controller
-					// that the Assertions need to "see".
-	                .instr             (instr),
-	                .alu_en            (alu_en),
-	                .mult_en           (mult_en),
-	                .mult_int_en       (mult_int_en),
-	                .mult_dot_en       (mult_dot_en),
-                    .ebrk_insn_dec     (ebrk_insn_dec),
-                    .mret_insn_dec     (mret_insn_dec),
-                    .uret_insn_dec     (uret_insn_dec),
-                    .dret_insn_dec     (dret_insn_dec),
-                    .ecall_insn_dec    (ecall_insn_dec),
-                    .wfi_insn_dec      (wfi_insn_dec),
-                    .fencei_insn_dec   (fencei_insn_dec),
-	                .regfile_we_id     (regfile_we_id),
-	                .regfile_alu_we_id (regfile_alu_we_id),
-	                .data_req_id       (data_req_id),
-                    .branch_taken_ex   (branch_taken_ex),
-                    .apu_en            (apu_en),
-                    .illegal_insn_dec  (illegal_insn_dec),
-					.alu_operator      (alu_operator),
-					.alu_vec_mode      (alu_vec_mode),
-					.mult_operator     (mult_operator)
-					);
+                   // Internal nets from cv32e40p_prefetch_controller
+                   // that the Assertions need to "see".
+                   .instr             (instr),
+                   .alu_en            (alu_en),
+                   .mult_en           (mult_en),
+                   .mult_int_en       (mult_int_en),
+                   .mult_dot_en       (mult_dot_en),
+                   .ebrk_insn_dec     (ebrk_insn_dec),
+                   .mret_insn_dec     (mret_insn_dec),
+                   .uret_insn_dec     (uret_insn_dec),
+                   .dret_insn_dec     (dret_insn_dec),
+                   .ecall_insn_dec    (ecall_insn_dec),
+                   .wfi_insn_dec      (wfi_insn_dec),
+                   .fencei_insn_dec   (fencei_insn_dec),
+                   .regfile_we_id     (regfile_we_id),
+                   .regfile_alu_we_id (regfile_alu_we_id),
+                   .data_req_id       (data_req_id),
+                   .branch_taken_ex   (branch_taken_ex),
+                   .apu_en            (apu_en),
+                   .illegal_insn_dec  (illegal_insn_dec),
+                   .alu_operator      (alu_operator),
+                   .alu_vec_mode      (alu_vec_mode),
+                   .mult_operator     (mult_operator)
+                   );
 
 `endif // CV32E40P_ASSERT_ON
 
