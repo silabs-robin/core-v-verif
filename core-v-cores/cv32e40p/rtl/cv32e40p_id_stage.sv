@@ -1678,7 +1678,7 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
   assign id_valid_o = (~halt_id) & id_ready_o;
   assign halt_if_o  = halt_if;
 
-
+/*
   //----------------------------------------------------------------------------
   // Assertions
   //----------------------------------------------------------------------------
@@ -1814,5 +1814,5 @@ module cv32e40p_id_stage import cv32e40p_pkg::*; import cv32e40p_apu_core_pkg::*
     a_illegal_2 : assert property(p_illegal_2);
 
   `endif
-
+*/
 endmodule // cv32e40p_id_stage
