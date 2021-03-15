@@ -18,6 +18,8 @@ class uvma_isa_mon_trn_c extends uvml_trn_mon_trn_c;
 
   `uvm_object_utils(uvma_isa_mon_trn_c)
 
+  riscv_instr instr;
+
   extern function new(string name = "uvma_isa_mon_trn");
 
 endclass : uvma_isa_mon_trn_c

@@ -56,11 +56,19 @@ task uvma_isa_mon_c::run_phase(uvm_phase phase);
   // TODO if cfg.enabled, while 1, wait cntxt.vif.reset, ...
   fork
     begin
-      repeat (3) begin  //TODO while (1) begin
+      repeat (3) begin  //TODO forever begin
         uvma_isa_mon_trn_c mon_trn;
+        riscv_instr        instr;
 
         @(cntxt.vif.retire);
+
         $display("TODO mon got retire: insn=0x%0h @%0t", cntxt.vif.insn, $time);
+
+        instr = riscv_instr::get_instr(ADDI);  // TODO do decoding
+        //TODO assign_trace_info_to_instr(instr);
+
+        mon_trn = new();
+        mon_trn.instr = instr;
         ap.write(mon_trn);
       end
     end
