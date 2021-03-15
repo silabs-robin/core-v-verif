@@ -14,7 +14,15 @@
 // limitations under the License.
 
 
+// riscv-dv
++incdir+${CV_CORE_COREV_DV_ROOT}
++incdir+${CV_CORE_COREV_DV_ROOT}/target/cv32e40p
++incdir+${COREV_DV_ROOT}
++incdir+${RISCV_DV_ROOT}/user_extension
+-f ${COREV_DV_ROOT}/manifest.f
+
+
+// uvma_isa
 +incdir+${DV_UVMA_ISA_PATH}
 +incdir+${DV_UVMA_ISA_PATH}/cov
-
 ${DV_UVMA_ISA_PATH}/uvma_isa_pkg.sv

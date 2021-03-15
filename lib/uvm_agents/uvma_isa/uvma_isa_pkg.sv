@@ -21,6 +21,7 @@ package uvma_isa_pkg;
 
   import uvm_pkg::*;
   import uvml_trn_pkg::*;
+  import riscv_instr_pkg::*;
 
   `include "uvma_isa_cfg.sv"
   `include "uvma_isa_cntxt.sv"

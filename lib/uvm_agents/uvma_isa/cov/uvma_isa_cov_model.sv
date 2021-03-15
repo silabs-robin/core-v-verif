@@ -21,6 +21,9 @@ class uvma_isa_cov_model_c extends uvm_component;
   // Objects
   uvma_isa_cfg_c cfg;
 
+  // Covergroups
+  riscv_instr_cover_group instr_cg;
+
   // TLM
   uvm_tlm_analysis_fifo #(uvma_isa_mon_trn_c) mon_trn_fifo;
 
@@ -48,7 +51,12 @@ function void uvma_isa_cov_model_c::build_phase(uvm_phase phase);
   end
 
   if (cfg.enabled && cfg.cov_model_enabled) begin
-    //TODO instr_cg = new();
+    riscv_instr_gen_config cfg_riscv;
+
+    cfg_riscv = riscv_instr_gen_config::type_id::create("cfg_riscv");
+    riscv_instr::create_instr_list(cfg_riscv);
+    instr_cg = new(cfg_riscv);
+    instr_cg.reset();
   end
 
   mon_trn_fifo = new("mon_trn_fifo", this);
