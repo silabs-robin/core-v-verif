@@ -26,6 +26,14 @@ typedef enum {
 } instr_name_t;
 
 
+typedef enum {
+  R_TYPE,
+  I_TYPE,
+  S_TYPE,
+  U_TYPE
+} instr_type_t;
+
+
 class instr_c extends uvm_object;
 
   instr_name_t name;
