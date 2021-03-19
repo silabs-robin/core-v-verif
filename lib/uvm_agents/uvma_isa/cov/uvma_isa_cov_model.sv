@@ -14,49 +14,65 @@
 // limitations under the License.
 
 
+covergroup cg_rtype(string name) with function sample (instr_c instr);
+  option.per_instance = 1;
+  option.name = name;
+
+  cp_rs1: coverpoint instr.rs1;
+  cp_rs2: coverpoint instr.rs2;
+  cp_rd: coverpoint instr.rd;
+endgroup : cg_rtype
+
+covergroup cg_itype(string name) with function sample (instr_c instr);
+  option.per_instance = 1;
+  option.name = name;
+
+  cp_rs1: coverpoint instr.rs1;
+  cp_rd: coverpoint instr.rd;
+  cp_immi: coverpoint instr.immi;
+endgroup : cg_itype
+
+covergroup cg_stype(string name) with function sample (instr_c instr);
+  option.per_instance = 1;
+  option.name = name;
+
+  cp_rs1: coverpoint instr.rs1;
+  cp_rs2: coverpoint instr.rs2;
+  cp_imms: coverpoint instr.imms;
+endgroup : cg_stype
+
+covergroup cg_utype(string name) with function sample (instr_c instr);
+  option.per_instance = 1;
+  option.name = name;
+
+  cp_rd: coverpoint instr.rd;
+  cp_immu: coverpoint instr.immu;
+endgroup : cg_utype
+
+
 class cg_wrapper_c extends uvm_component;
 
   `uvm_component_utils(cg_wrapper_c)
 
-  covergroup cg_rtype(string name) with function sample (instr_c instr);
-    option.per_instance = 1;
-    option.name = name;
-
-    cp_rs1: coverpoint instr.rs1;
-    cp_rs2: coverpoint instr.rs2;
-    cp_rd: coverpoint instr.rd;
-  endgroup : cg_rtype
-
-  covergroup cg_itype(string name) with function sample (instr_c instr);
-    option.per_instance = 1;
-    option.name = name;
-
-    cp_rs1: coverpoint instr.rs1;
-    cp_rd: coverpoint instr.rd;
-    cp_immi: coverpoint instr.immi;
-  endgroup : cg_itype
-
-  covergroup cg_stype(string name) with function sample (instr_c instr);
-    option.per_instance = 1;
-    option.name = name;
-
-    cp_rs1: coverpoint instr.rs1;
-    cp_rs2: coverpoint instr.rs2;
-    cp_imms: coverpoint instr.imms;
-  endgroup : cg_stype
-
-  covergroup cg_utype(string name) with function sample (instr_c instr);
-    option.per_instance = 1;
-    option.name = name;
-
-    cp_rd: coverpoint instr.rd;
-    cp_immu: coverpoint instr.immu;
-  endgroup : cg_utype
+  cg_rtype cg_rtype;
+  cg_itype cg_itype;
+  cg_stype cg_stype;
+  cg_utype cg_utype;
+  string   name;
 
   function new(string name = "cg_wrapper_c", uvm_component parent = null);
     super.new(name, parent);
-    cg_itype = new(name);  // TODO select type
+    this.name = name;
   endfunction : new
+
+  function void create_cg(instr_type_t instr_type);
+    case (instr_type)
+      R_TYPE: cg_rtype = new(this.name);
+      I_TYPE: cg_itype = new(this.name);
+      S_TYPE: cg_stype = new(this.name);
+      U_TYPE: cg_utype = new(this.name);
+    endcase
+  endfunction : create_cg
 
 endclass : cg_wrapper_c
 
@@ -99,8 +115,13 @@ function void uvma_isa_cov_model_c::build_phase(uvm_phase phase);
   end
 
   if (cfg.enabled && cfg.cov_model_enabled) begin
-    cgs[ADDI] = cg_wrapper_c::type_id::create("addi_cg_wrapper", this);  // TODO ADDI.name()?
+    instr_name_t instr_name = ADDI;
+    string name = $sformatf("%s_cg_wrapper", instr_name.name());
+    cgs[ADDI] = cg_wrapper_c::type_id::create(name, this);
+    cgs[ADDI].create_cg(I_TYPE);
+
     cgs[AUIPC] = cg_wrapper_c::type_id::create("auipc_cg_wrapper", this);  // TODO AUIPC.name()?
+    cgs[AUIPC].create_cg(U_TYPE);
   end
 
   mon_trn_fifo = new("mon_trn_fifo", this);
