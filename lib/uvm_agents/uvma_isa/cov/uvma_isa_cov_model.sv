@@ -71,23 +71,38 @@ class cg_wrapper_c extends uvm_component;
       I_TYPE: cg_itype = new(this.name);
       S_TYPE: cg_stype = new(this.name);
       U_TYPE: cg_utype = new(this.name);
+      // TODO default error
     endcase
   endfunction : create_cg
 
-  static function instr_type_t getTypeOfInstr(instr_name_t name);
+  function void sample(instr_c instr);
+    instr_type_t instr_type = cg_wrapper_c::getTypeOf(instr.name);
+    case (instr_type)
+      R_TYPE: cg_rtype.sample(instr);
+      I_TYPE: cg_itype.sample(instr);
+      S_TYPE: cg_stype.sample(instr);
+      U_TYPE: cg_utype.sample(instr);
+      // TODO default error
+    endcase
+  endfunction : sample
+
+  static function instr_type_t getTypeOf(instr_name_t name);
     instr_name_t itypes[$] = '{
       JALR,
       LB, LH, LW, LBU, LHU,
       ADDI, SLTI, SLTIU, XORI, ORI, ANDI,
       FENCE, ECALL, EBREAK
       };
-    instr_name_t utypes[$] = '{LUI, AUIPC};
+    instr_name_t utypes[$] = '{
+      LUI, AUIPC
+      };
+
     case (1)
       name inside {itypes} : return I_TYPE;
       name inside {utypes} : return U_TYPE;
       default: return UNKNOWN_TYPE;
     endcase
-  endfunction : getTypeOfInstr
+  endfunction : getTypeOf
 
 endclass : cg_wrapper_c
 
@@ -137,7 +152,7 @@ function void uvma_isa_cov_model_c::build_phase(uvm_phase phase);
     for (n = n.first(); 1; n = n.next()) begin
       if (n == UNKNOWN) continue;
 
-      instr_type = cg_wrapper_c::getTypeOfInstr(n);
+      instr_type = cg_wrapper_c::getTypeOf(n);
       cg_name = $sformatf("%s_cg", n.name().tolower());
 
       cgs[n] = cg_wrapper_c::type_id::create(cg_name, this);
@@ -172,18 +187,10 @@ endtask : run_phase
 
 function void uvma_isa_cov_model_c::sample (instr_c instr);
 
-  case (instr.name)
-    //TODO ADDI: cgs[ADDI].sample()
-    ADDI: ;
-    /* TODO reenable all sampling
-    ORI:  ori_cg.sample(instr);
-    AUIPC: auipc_cg.sample(instr);
-    SW: sw_cg.sample(instr);
-    XOR: xor_cg.sample(instr);
-    MULH: mulh_cg.sample(instr);
-    DIVU: divu_cg.sample(instr);
-    // TODO default
-*/
-  endcase
+  if (cgs.exists(instr.name)) begin
+    cgs[instr.name].sample(instr);
+  end else begin
+    // TODO error?
+  end
 
 endfunction
