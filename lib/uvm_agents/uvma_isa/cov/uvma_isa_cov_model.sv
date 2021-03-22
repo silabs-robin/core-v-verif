@@ -61,7 +61,7 @@ class cg_wrapper_c extends uvm_component;
   string   name;
 
   function new(string name = "cg_wrapper_c", uvm_component parent = null);
-    super.new(name, parent);
+    super.new({name, "_wrapper"}, parent);
     this.name = name;
   endfunction : new
 
@@ -81,13 +81,11 @@ class cg_wrapper_c extends uvm_component;
       ADDI, SLTI, SLTIU, XORI, ORI, ANDI,
       FENCE, ECALL, EBREAK
       };
-    instr_name_t utypes[$] = '{
-      LUI, AUIPC
-      };
+    instr_name_t utypes[$] = '{LUI, AUIPC};
     case (1)
       name inside {itypes} : return I_TYPE;
       name inside {utypes} : return U_TYPE;
-      default : return UNKNOWN_TYPE;
+      default: return UNKNOWN_TYPE;
     endcase
   endfunction : getTypeOfInstr
 
@@ -132,16 +130,21 @@ function void uvma_isa_cov_model_c::build_phase(uvm_phase phase);
   end
 
   if (cfg.enabled && cfg.cov_model_enabled) begin
-    instr_name_t instr_name = ADDI;
-    instr_type_t instr_type = cg_wrapper_c::getTypeOfInstr(instr_name);
-    string cg_name = $sformatf("%s_cg_wrapper", instr_name.name().tolower());
+    instr_name_t n;
+    instr_type_t instr_type;
+    string cg_name;
 
-    cgs[ADDI] = cg_wrapper_c::type_id::create(cg_name, this);
-    cgs[ADDI].create_cg(instr_type);
+    for (n = n.first(); 1; n = n.next()) begin
+      if (n == UNKNOWN) continue;
 
+      instr_type = cg_wrapper_c::getTypeOfInstr(n);
+      cg_name = $sformatf("%s_cg", n.name().tolower());
 
-    cgs[AUIPC] = cg_wrapper_c::type_id::create("auipc_cg_wrapper", this);  // TODO AUIPC.name()?
-    cgs[AUIPC].create_cg(U_TYPE);
+      cgs[n] = cg_wrapper_c::type_id::create(cg_name, this);
+      cgs[n].create_cg(instr_type);
+
+      if (n == n.last()) break;
+    end
   end
 
   mon_trn_fifo = new("mon_trn_fifo", this);
@@ -172,7 +175,7 @@ function void uvma_isa_cov_model_c::sample (instr_c instr);
   case (instr.name)
     //TODO ADDI: cgs[ADDI].sample()
     ADDI: ;
-/* TODO reenable all sampling
+    /* TODO reenable all sampling
     ORI:  ori_cg.sample(instr);
     AUIPC: auipc_cg.sample(instr);
     SW: sw_cg.sample(instr);
