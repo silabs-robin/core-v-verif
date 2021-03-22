@@ -74,6 +74,23 @@ class cg_wrapper_c extends uvm_component;
     endcase
   endfunction : create_cg
 
+  static function instr_type_t getTypeOfInstr(instr_name_t name);
+    instr_name_t itypes[$] = '{
+      JALR,
+      LB, LH, LW, LBU, LHU,
+      ADDI, SLTI, SLTIU, XORI, ORI, ANDI,
+      FENCE, ECALL, EBREAK
+      };
+    instr_name_t utypes[$] = '{
+      LUI, AUIPC
+      };
+    case (1)
+      name inside {itypes} : return I_TYPE;
+      name inside {utypes} : return U_TYPE;
+      default : return UNKNOWN_TYPE;
+    endcase
+  endfunction : getTypeOfInstr
+
 endclass : cg_wrapper_c
 
 
@@ -116,9 +133,12 @@ function void uvma_isa_cov_model_c::build_phase(uvm_phase phase);
 
   if (cfg.enabled && cfg.cov_model_enabled) begin
     instr_name_t instr_name = ADDI;
-    string name = $sformatf("%s_cg_wrapper", instr_name.name());
-    cgs[ADDI] = cg_wrapper_c::type_id::create(name, this);
-    cgs[ADDI].create_cg(I_TYPE);
+    instr_type_t instr_type = cg_wrapper_c::getTypeOfInstr(instr_name);
+    string cg_name = $sformatf("%s_cg_wrapper", instr_name.name().tolower());
+
+    cgs[ADDI] = cg_wrapper_c::type_id::create(cg_name, this);
+    cgs[ADDI].create_cg(instr_type);
+
 
     cgs[AUIPC] = cg_wrapper_c::type_id::create("auipc_cg_wrapper", this);  // TODO AUIPC.name()?
     cgs[AUIPC].create_cg(U_TYPE);

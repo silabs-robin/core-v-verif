@@ -16,17 +16,22 @@
 
 typedef enum {
   UNKNOWN,
-  ADDI,
-  ORI,
-  AUIPC,
-  SW,
-  XOR,
-  MULH,
-  DIVU
+
+  // 32I
+  LUI, AUIPC, JAL, JALR,
+  BEQ, BNE, BLT, BGE, BLTU, BGEU,
+  LB, LH, LW, LBU, LHU, SB, SH, SW,
+  ADDI, SLTI, SLTIU, XORI, ORI, ANDI, SLLI, SRLI, SRAI,
+  ADD, SUB, SLL, SLT, SLTU, XOR, SRL, SRA, OR, AND,
+  FENCE, ECALL, EBREAK,
+
+  // 32M
+  MULH, DIVU
 } instr_name_t;
 
 
 typedef enum {
+  UNKNOWN_TYPE,
   R_TYPE,
   I_TYPE,
   S_TYPE,
