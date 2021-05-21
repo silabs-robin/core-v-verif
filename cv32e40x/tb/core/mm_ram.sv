@@ -148,7 +148,7 @@ module mm_ram
     logic                          timer_val_valid;
     logic [31:0]                   timer_wdata;
 
-            // cycle counting
+    // cycle counting
     logic [31:0]                   cycle_count_q;
     logic                          cycle_count_overflow_q;
     logic                          cycle_count_clear;
@@ -188,6 +188,12 @@ module mm_ram
     integer                        sig_fd;
     integer                        errno;
     string                         error_str;
+
+    // test status and exit
+    logic                          tests_passed;
+    logic                          tests_failed;
+    logic                          exit_valid;
+    logic [31:0]                   exit_value;
 
     // uhh, align?
     always_comb data_addr_aligned = {data_addr_i[31:2], 2'b0};
@@ -276,10 +282,10 @@ module mm_ram
     // handle the mapping of read and writes to either memory or pseudo
     // peripherals (currently just a redirection of writes to stdout)
     always_comb begin
-        tests_passed_o      = '0;
-        tests_failed_o      = '0;
-        exit_value_o        =  0;
-        exit_valid_o        = '0;
+        tests_passed        = '0;
+        tests_failed        = '0;
+        exit_value          =  0;
+        exit_valid          = '0;
         data_req_dec        = '0;
         data_addr_dec       = '0;
         data_wdata_dec      = '0;
@@ -330,13 +336,13 @@ module mm_ram
 
                 end else if (data_addr_i == MMADDR_TESTSTATUS) begin
                     if (data_wdata_i == 123456789)
-                        tests_passed_o = '1;
+                        tests_passed = '1;
                     else if (data_wdata_i == 1)
-                        tests_failed_o = '1;
+                        tests_failed = '1;
 
                 end else if (data_addr_i == MMADDR_EXIT) begin
-                    exit_valid_o = '1;
-                    exit_value_o = data_wdata_i;
+                    exit_valid = '1;
+                    exit_value = data_wdata_i;
 
                 end else if (data_addr_i == MMADDR_SIGBEGIN) begin
                     // sets signature begin
@@ -391,8 +397,8 @@ module mm_ram
                         end
                     end
 `endif // ifndef VERILATOR
-                    exit_valid_o = '1; // signal halt to testbench
-                    exit_value_o = '0;
+                    exit_valid = '1; // signal halt to testbench
+                    exit_value = '0;
 
                 end else if (data_addr_i == MMADDR_TIMERREG) begin
                     timer_wdata = data_wdata_i;
@@ -457,6 +463,15 @@ module mm_ram
 
             end
         end
+    end
+
+
+    // status and exit signals
+    always @(posedge clk_i) begin
+        tests_passed_o <= tests_passed;
+        tests_failed_o <= tests_failed;
+        exit_valid_o <= exit_valid;
+        exit_value_o <= exit_value;
     end
 
 `ifndef VERILATOR
