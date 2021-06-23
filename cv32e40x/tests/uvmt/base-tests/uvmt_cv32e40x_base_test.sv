@@ -42,8 +42,7 @@ class uvmt_cv32e40x_base_test_c extends uvm_test;
    
    // Handles testbench interfaces
    virtual uvmt_cv32e40x_vp_status_if    vp_status_vif;  // virtual peripheral status
-   virtual uvmt_cv32e40x_core_cntrl_if   core_cntrl_vif; // control inputs to the core
-   virtual uvmt_cv32e40x_step_compare_if step_compare_vif;
+   virtual uvmt_cv32e40x_core_cntrl_if   core_cntrl_vif; // control inputs to the core   
    
    // Default sequences
    rand uvme_cv32e40x_reset_vseq_c  reset_vseq;
@@ -56,16 +55,21 @@ class uvmt_cv32e40x_base_test_c extends uvm_test;
    `uvm_component_utils_end
 
    
+   bit [31:0] tmp_nmi_handler_addr;
+
    constraint env_cfg_cons {
       env_cfg.enabled         == 1;
       env_cfg.is_active       == UVM_ACTIVE;
       env_cfg.trn_log_enabled == 1;
+
+      // FIXME:STRICHMO:undo temp variable when Issue 675 is solved
+      //env_cfg.rvfi_cfg.nmi_handler_addr        == core_cntrl_vif.nmi_addr;
+      env_cfg.rvfi_cfg.nmi_handler_addr        == tmp_nmi_handler_addr;
    }
    
    constraint test_type_default_cons {
      soft test_cfg.tpt == NO_TEST_PROGRAM;
    }
-   
    
    // Additional, temporary constraints to get around known design bugs/constraints
    `include "uvmt_cv32e40x_base_test_workarounds.sv"
@@ -122,7 +126,12 @@ class uvmt_cv32e40x_base_test_c extends uvm_test;
     * This is done by checking the properties of the phase argument.
     */
    extern virtual function void phase_ended(uvm_phase phase);
-   
+
+   /**
+    * pre_randomize hook
+    */
+   extern function void pre_randomize();
+
    /**
     * Retrieves virtual interfaces from UVM configuration database.
     */
@@ -332,11 +341,6 @@ function void uvmt_cv32e40x_base_test_c::phase_ended(uvm_phase phase);
      // then mark test as failed
      if (!tp && !evalid && !tf) `uvm_error("END_OF_TEST", "DUT WRAPPER virtual peripheral failed to flag test passed and failed to signal exit value.")   
 
-     // Report on number of ISS step and compare checks if the ISS is used     
-     if ($test$plusargs("USE_ISS")) begin
-       step_compare_vif.report_step_compare(); 
-     end     
-
      print_banner("test finished");
    end
    
@@ -358,13 +362,6 @@ function void uvmt_cv32e40x_base_test_c::retrieve_vifs();
    else begin
       `uvm_info("VIF", $sformatf("Found core_cntrl_vif handle of type %s in uvm_config_db", $typename(core_cntrl_vif)), UVM_DEBUG)
    end
-
-   if (!uvm_config_db#(virtual uvmt_cv32e40x_step_compare_if)::get(this, "", "step_compare_vif", step_compare_vif)) begin
-      `uvm_fatal("VIF", $sformatf("Could not find step_compare_vif handle of type %s in uvm_config_db", $typename(step_compare_vif)))
-   end
-   else begin
-      `uvm_info("VIF", $sformatf("Found step_compare_vif handle of type %s in uvm_config_db", $typename(step_compare_vif)), UVM_DEBUG)
-   end   
    
 endfunction : retrieve_vifs
 
@@ -373,13 +370,12 @@ function void uvmt_cv32e40x_base_test_c::create_cfg();
    
    test_cfg = uvmt_cv32e40x_test_cfg_c::type_id::create("test_cfg");
    env_cfg  = uvme_cv32e40x_cfg_c     ::type_id::create("env_cfg" );
-   //ral      = env_cfg.ral;
    
 endfunction : create_cfg
 
 
 function void uvmt_cv32e40x_base_test_c::randomize_test();
-   
+      
    test_cfg.process_cli_args();
    if (!this.randomize()) begin
       `uvm_fatal("BASE TEST", "Failed to randomize test");
@@ -464,5 +460,12 @@ task uvmt_cv32e40x_base_test_c::watchdog_timer();
    
 endtask : watchdog_timer
 
+
+// FIXME:STRICHMO:Remove when 675 fixed
+function void uvmt_cv32e40x_base_test_c::pre_randomize();
+
+   tmp_nmi_handler_addr = core_cntrl_vif.nmi_addr;   
+
+endfunction : pre_randomize
 
 `endif // __UVMT_CV32E40X_BASE_TEST_SV__

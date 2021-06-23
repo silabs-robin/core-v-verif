@@ -125,7 +125,7 @@ module uvmt_cv32e40x_dut_wrap import cv32e40x_pkg::*; #(// DUT (riscv_core) para
                 rnd_byte = $random();
                 uvmt_cv32e40x_tb.dut_wrap.ram_i.dp_ram_i.mem[index]=rnd_byte;
                 if ($test$plusargs("USE_ISS")) begin
-                  uvmt_cv32e40x_tb.iss_wrap.ram.mem[index/4][((((index%4)+1)*8)-1)-:8]=rnd_byte; // convert byte to 32-bit addressing
+                  uvmt_cv32e40x_tb.iss_wrap.bus.mem[index/4][((((index%4)+1)*8)-1)-:8]=rnd_byte; // convert byte to 32-bit addressing
                 end                
              end
           end
@@ -172,6 +172,7 @@ module uvmt_cv32e40x_dut_wrap import cv32e40x_pkg::*; #(// DUT (riscv_core) para
          .boot_addr_i            ( core_cntrl_if.boot_addr        ),
          .mtvec_addr_i           ( core_cntrl_if.mtvec_addr       ),
          .dm_halt_addr_i         ( core_cntrl_if.dm_halt_addr     ),
+         .nmi_addr_i             ( core_cntrl_if.nmi_addr         ),
          .hart_id_i              ( core_cntrl_if.hart_id          ),
          .dm_exception_addr_i    ( core_cntrl_if.dm_exception_addr),
 

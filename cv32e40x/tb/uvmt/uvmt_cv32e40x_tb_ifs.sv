@@ -36,8 +36,7 @@ interface uvmt_cv32e40x_clk_gen_if (output logic core_clock, output logic core_r
    realtime  core_clock_period       = 1500ps; // uvme_cv32e40x_clk_period * 1ps;
    realtime  reset_deassert_duration = 7400ps; // uvme_cv32e40x_reset_deassert_duarion * 1ps;
    realtime  reset_assert_duration   = 7400ps; // uvme_cv32e40x_reset_assert_duarion * 1ps;
-   
-   
+      
    /**
     * Generates clock and reset signals.
     * If reset_n comes up de-asserted (1'b1), wait a bit, then assert, then de-assert
@@ -107,6 +106,7 @@ interface uvmt_cv32e40x_core_cntrl_if (
                                     output logic [31:0] mtvec_addr,
                                     output logic [31:0] dm_halt_addr,
                                     output logic [31:0] dm_exception_addr,
+                                    output logic [31:0] nmi_addr,
                                     output logic [31:0] hart_id,
                                     // To be driven by future debug module (DM)
                                     output logic        debug_req,
@@ -174,6 +174,7 @@ interface uvmt_cv32e40x_core_cntrl_if (
     mtvec_addr        = 32'h0000_0000;
     dm_halt_addr      = 32'h1A11_0800;
     dm_exception_addr = 32'h1A11_1000;
+    nmi_addr          = 32'h2000_0000;
     hart_id           = 32'h0000_0000;
 
     // If a override is provided via plusarg then set bootstrap pins and adjust ISS model
@@ -245,81 +246,6 @@ interface uvmt_cv32e40x_core_status_if (
   import uvm_pkg::*;
 
 endinterface : uvmt_cv32e40x_core_status_if
-
-/**
- * ISA coverage interface
- * ISS wrapper will fill in ins (instruction) and fire ins_valid event
- */
-interface uvmt_cv32e40x_isa_covg_if;
-
-  import uvm_pkg::*;
-  import uvme_cv32e40x_pkg::*;
-
-  event ins_valid;
-  ins_t ins;
-
-endinterface : uvmt_cv32e40x_isa_covg_if
-
-/**
- * Step and compare interface
- * Xcelium does not support event types in the module port list
- */
-interface uvmt_cv32e40x_step_compare_if;
-
-  import uvm_pkg::*;
-
-  // From RTL riscv_tracer.sv
-  typedef struct {
-     logic [ 5:0] addr;
-     logic [31:0] value;
-   } reg_t;
-
-   event        ovp_cpu_valid;      // Indicate instruction successfully retired
-   event        ovp_cpu_trap;       // Indicate exception occured 
-   event        ovp_cpu_halt;       // Indicate exception occured 
-   bit   [31:0] ovp_cpu_PCr;        // Was iss_wrap.cpu.PCr
-   logic [31:0] ovp_cpu_GPR[32];
-   bit          ovp_cpu_state_idle;
-   bit          ovp_cpu_state_stepi;
-   bit          ovp_cpu_state_stop;
-   bit          ovp_cpu_state_cont;
-
-   event        riscv_retire;       // Was riscv_core.riscv_tracer_i.retire
-   event        riscv_trap;         // new event to indicate RTL took a trap
-   event        riscv_halt;         // new event to indicate RTL took a halt
-   
-   logic [31:0] insn_pc;
-   logic [31:0][31:0] riscy_GPR;    // packed dimensions, register index by data width
-   logic        deferint_prime;     // Stages deferint for the ISS deferint signal
-   logic        deferint_prime_ack; // Set low if deferint_prime was set due to interrupt ack (as opposed to wakeup)
-
-   int  num_pc_checks;
-   int  num_gpr_checks;
-   int  num_csr_checks;
-
-   // Report on the checkers at the end of simulation
-   function void report_step_compare();
-      if (num_pc_checks > 0) begin
-         `uvm_info("step_compare", $sformatf("Checked PC 0d%0d times", num_pc_checks), UVM_LOW);
-      end
-      else begin
-         `uvm_error("step_compare", "PC was checked 0 times!");
-      end
-      if (num_gpr_checks > 0) begin
-         `uvm_info("step_compare", $sformatf("Checked GPR 0d%0d times", num_gpr_checks), UVM_LOW);
-      end
-      else begin
-         `uvm_error("step_compare", "GPR was checked 0 times!");
-      end
-      if (num_csr_checks > 0) begin
-         `uvm_info("step_compare", $sformatf("Checked CSR 0d%0d times", num_csr_checks), UVM_LOW);
-      end
-      else begin
-         `uvm_error("step_compare", "CSR was checked 0 times!");
-      end
-   endfunction // report_step_compare
-   
-endinterface: uvmt_cv32e40x_step_compare_if
 
 // Interface to debug assertions and covergroups
 interface uvmt_cv32e40x_debug_cov_assert_if
