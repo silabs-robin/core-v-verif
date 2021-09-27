@@ -330,6 +330,11 @@ function void uvme_cv32e40x_env_c::retrieve_vifs();
       `uvm_fatal("CNTXT", $sformatf("No uvmt_cv32e40x_debug_cov_assert_if found in config database"))
    end
 
+   void'(uvm_config_db#(virtual uvmt_cv32e40x_counters_if)::get(this, "", "counters_vif", cntxt.counters_vif));
+   if (cntxt.counters_vif == null) begin
+      `uvm_fatal("CNTXT", $sformatf("No uvmt_cv32e40x_counters_if found in config database"))
+   end
+
 endfunction: retrieve_vifs
 
 function void uvme_cv32e40x_env_c::assign_cfg();

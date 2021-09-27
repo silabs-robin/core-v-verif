@@ -243,4 +243,23 @@ interface uvmt_cv32e40x_debug_cov_assert_if
 
 endinterface : uvmt_cv32e40x_debug_cov_assert_if
 
+
+// Interface to Counters
+
+interface uvmt_cv32e40x_counters_if (
+  input clk_i,
+  input rst_ni,
+
+  input [31:0] mcountinhibit
+);
+
+  clocking mon_cb @(posedge clk_i);
+    input #1step
+
+    mcountinhibit
+  endclocking : mon_cb
+
+endinterface : uvmt_cv32e40x_counters_if
+
+
 `endif // __UVMT_CV32E40X_TB_IFS_SV__

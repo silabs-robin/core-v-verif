@@ -18,11 +18,18 @@
 
 class uvme_counters_covg extends uvm_component;
 
+  uvme_cv32e40x_cntxt_c cntxt;
+
   `uvm_component_utils(uvme_counters_covg);
 
   extern function new(string name = "counters_covg", uvm_component parent = null);
   extern function void build_phase(uvm_phase phase);
   extern task run_phase(uvm_phase phase);
+
+  covergroup cg_mcountinhibit;
+    `per_instance_fcov
+    cp_TODO: coverpoint cntxt.counters_vif.mon_cb.mcountinhibit;
+  endgroup : cg_mcountinhibit
 
 endclass : uvme_counters_covg
 
@@ -31,6 +38,8 @@ function uvme_counters_covg::new(string name = "counters_covg", uvm_component pa
 
   super.new(name, parent);
 
+  cg_mcountinhibit = new();
+
 endfunction : new
 
 
@@ -38,11 +47,20 @@ function void uvme_counters_covg::build_phase(uvm_phase phase);
 
   super.build_phase(phase);
 
+  void'(uvm_config_db#(uvme_cv32e40x_cntxt_c)::get(this, "", "cntxt", cntxt));
+  if (cntxt == null) `uvm_fatal("COUNTERSCOVG", "No cntxt object passed to model");
+
 endfunction : build_phase
 
 
 task uvme_counters_covg::run_phase(uvm_phase phase);
 
   super.run_phase(phase);
+
+  while (1) begin
+    @(cntxt.counters_vif.mon_cb);
+
+    cg_mcountinhibit.sample();
+  end
 
 endtask : run_phase
