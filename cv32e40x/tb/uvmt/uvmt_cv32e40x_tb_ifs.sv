@@ -251,8 +251,21 @@ interface uvmt_cv32e40x_exceptions_if (
 
   input  wb_valid,
   input  illegal_insn,
+  input  err,
 
-  output is_instr_illegal
+  output is_ibus_breakpoint_addr,
+  output is_ibus_pma,
+  output is_ibus_buserr,
+  output is_instr_illegal,
+  output is_instr_ecall,
+  output is_instr_ebreak,
+  output is_dbus_breakpoint_addr,
+  output is_dbus_breakpoint_data,
+  output is_dbus_pma_store_misaligned,
+  output is_dbus_pma_store_amo,
+  output is_dbus_pma_store_conditional,
+  output is_dbus_pma_load_misaligned,
+  output is_dbus_pma_load_reserved
 );
 
   default clocking mon_cb @(posedge clk_i);

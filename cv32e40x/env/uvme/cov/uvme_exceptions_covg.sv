@@ -84,19 +84,19 @@ covergroup cg_vif
 
   `per_instance_fcov
 
-  // TODO cp_ibus_breakpoint_addr;
-  // TODO cp_ibus_pma;
-  // TODO cp_ibus_buserr;
-  cp_instr_illegal: coverpoint vif.is_instr_illegal;
-  // TODO cp_instr_ecall;
-  // TODO cp_instr_ebreak;
-  // TODO cp_dbus_breakpoint_addr;
-  // TODO cp_dbus_breakpoint_data;
-  // TODO cp_dbus_pma_store_misaligned;
-  // TODO cp_dbus_pma_store_amo;
-  // TODO cp_dbus_pma_store_conditional;
-  // TODO cp_dbus_pma_load_misaligned;
-  // TODO cp_dbus_pma_load_reserved;
+  cp_ibus_breakpoint_addr : coverpoint vif.is_ibus_breakpoint_addr;
+  cp_ibus_pma : coverpoint vif.is_ibus_pma;
+  cp_ibus_buserr : coverpoint vif.is_ibus_buserr;
+  cp_instr_illegal : coverpoint vif.is_instr_illegal;
+  cp_instr_ecall : coverpoint vif.is_instr_ecall;
+  cp_instr_ebreak : coverpoint vif.is_instr_ebreak;
+  cp_dbus_breakpoint_addr : coverpoint vif.is_dbus_breakpoint_addr;
+  cp_dbus_breakpoint_data : coverpoint vif.is_dbus_breakpoint_data;
+  cp_dbus_pma_store_misaligned : coverpoint vif.is_dbus_pma_store_misaligned;
+  cp_dbus_pma_store_amo : coverpoint vif.is_dbus_pma_store_amo;
+  cp_dbus_pma_store_conditional : coverpoint vif.is_dbus_pma_store_conditional;
+  cp_dbus_pma_load_misaligned : coverpoint vif.is_dbus_pma_load_misaligned;
+  cp_dbus_pma_load_reserved : coverpoint vif.is_dbus_pma_load_reserved;
 
   // TODO crosses
 

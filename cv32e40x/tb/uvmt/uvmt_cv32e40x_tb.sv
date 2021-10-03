@@ -428,10 +428,23 @@ module uvmt_cv32e40x_tb;
 
     bind cv32e40x_wrapper
       uvmt_cv32e40x_exceptions_if exceptions_if (
-        .wb_valid(core_i.wb_stage_i.wb_valid_o),
-        .illegal_insn(core_i.ex_wb_pipe.illegal_insn),
+        .wb_valid (core_i.wb_stage_i.wb_valid),
+        .illegal_insn (core_i.ex_wb_pipe.illegal_insn),
+        .err (core_i.ex_wb_pipe.instr.bus_resp.err),
 
-        .is_instr_illegal(),
+        .is_ibus_breakpoint_addr (),
+        .is_ibus_pma (),
+        .is_ibus_buserr (),
+        .is_instr_illegal (),
+        .is_instr_ecall (),
+        .is_instr_ebreak (),
+        .is_dbus_breakpoint_addr (),
+        .is_dbus_breakpoint_data (),
+        .is_dbus_pma_store_misaligned (),
+        .is_dbus_pma_store_amo (),
+        .is_dbus_pma_store_conditional (),
+        .is_dbus_pma_load_misaligned (),
+        .is_dbus_pma_load_reserved (),
 
         .*
       );
