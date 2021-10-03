@@ -249,13 +249,14 @@ endinterface : uvmt_cv32e40x_debug_cov_assert_if
 interface uvmt_cv32e40x_exceptions_if (
   input  clk_i,
 
-  input  wb_valid
+  input  wb_valid,
+  input  illegal_insn,
+
+  output is_instr_illegal
 );
 
-  clocking mon_cb @(posedge clk_i);
-    input #1step
-
-    wb_valid
+  default clocking mon_cb @(posedge clk_i);
+    default input #1step
   endclocking : mon_cb
 
 endinterface : uvmt_cv32e40x_exceptions_if

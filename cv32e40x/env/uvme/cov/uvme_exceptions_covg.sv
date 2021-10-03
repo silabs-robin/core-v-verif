@@ -79,12 +79,15 @@ covergroup cg_rvfi
 endgroup : cg_rvfi
 
 
-covergroup cg_vif;
+covergroup cg_vif
+  with function sample(virtual uvmt_cv32e40x_exceptions_if  vif);
+
+  `per_instance_fcov
 
   // TODO cp_ibus_breakpoint_addr;
   // TODO cp_ibus_pma;
   // TODO cp_ibus_buserr;
-  // TODO cp_instr_illegal;
+  cp_instr_illegal: coverpoint vif.is_instr_illegal;
   // TODO cp_instr_ecall;
   // TODO cp_instr_ebreak;
   // TODO cp_dbus_breakpoint_addr;
@@ -145,7 +148,7 @@ task uvme_exceptions_covg::run_phase(uvm_phase phase);
 
   while (1) begin
     @(cntxt.exceptions_vif.mon_cb);
-    vif_cg.sample();
+    vif_cg.sample(cntxt.exceptions_vif);
   end
 
 endtask : run_phase
