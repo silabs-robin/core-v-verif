@@ -81,14 +81,15 @@ endgroup : cg_exceptions
 
 class uvme_exceptions_covg extends uvm_component;
 
-  cg_exceptions exceptions_cg;
-
-  uvm_analysis_imp_rvfi#(uvma_rvfi_instr_seq_item_c#(ILEN, XLEN), uvme_exceptions_covg) rvfi_mon_export;
+  uvme_cv32e40x_cntxt_c  cntxt;
+  cg_exceptions  exceptions_cg;
+  uvm_analysis_imp_rvfi#(uvma_rvfi_instr_seq_item_c#(ILEN, XLEN), uvme_exceptions_covg)  rvfi_mon_export;
 
   `uvm_component_utils(uvme_exceptions_covg);
 
   extern function new(string name = "exceptions_covg", uvm_component parent = null);
   extern function void build_phase(uvm_phase phase);
+  extern task run_phase(uvm_phase phase);
   extern function void write_rvfi(uvma_rvfi_instr_seq_item_c#(ILEN, XLEN) trn);
 
 endclass : uvme_exceptions_covg
@@ -109,7 +110,23 @@ function void uvme_exceptions_covg::build_phase(uvm_phase phase);
 
   exceptions_cg = new();
 
+  void'(uvm_config_db#(uvme_cv32e40x_cntxt_c)::get(this, "", "cntxt", cntxt));
+  if (cntxt == null) `uvm_fatal("EXCEPTIONSCOVG", "No cntxt object passed to model");
+
 endfunction : build_phase
+
+
+task uvme_exceptions_covg::run_phase(uvm_phase phase);
+
+  super.run_phase(phase);
+
+  while (1) begin
+    @(cntxt.exceptions_vif.mon_cb);
+
+    // TODO sample
+  end
+
+endtask : run_phase
 
 
 function void uvme_exceptions_covg::write_rvfi(uvma_rvfi_instr_seq_item_c#(ILEN, XLEN) trn);

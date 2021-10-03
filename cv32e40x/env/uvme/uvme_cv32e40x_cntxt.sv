@@ -27,10 +27,11 @@ class uvme_cv32e40x_cntxt_c extends uvm_object;
 
    // Virtual interface for Debug coverage
    // FIXME:strichmo:The debug coverage interface needs to be reimplemented for new controller
-   virtual uvmt_cv32e40x_debug_cov_assert_if debug_cov_vif;
-   virtual uvmt_cv32e40x_vp_status_if        vp_status_vif; ///< Virtual interface for Virtual Peripherals
-   virtual uvma_interrupt_if                 intr_vif     ; ///< Virtual interface for interrupts
-   virtual uvma_debug_if                     debug_vif    ; ///< Virtual interface for debug
+   virtual uvmt_cv32e40x_debug_cov_assert_if debug_cov_vif ;
+   virtual uvmt_cv32e40x_exceptions_if       exceptions_vif;
+   virtual uvmt_cv32e40x_vp_status_if        vp_status_vif ; ///< Virtual interface for Virtual Peripherals
+   virtual uvma_interrupt_if                 intr_vif      ; ///< Virtual interface for interrupts
+   virtual uvma_debug_if                     debug_vif     ; ///< Virtual interface for debug
 
    // Agent context handles
    uvma_cv32e40x_core_cntrl_cntxt_c  core_cntrl_cntxt;

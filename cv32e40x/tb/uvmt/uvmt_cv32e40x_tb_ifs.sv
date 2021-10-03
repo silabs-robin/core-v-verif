@@ -243,4 +243,22 @@ interface uvmt_cv32e40x_debug_cov_assert_if
 
 endinterface : uvmt_cv32e40x_debug_cov_assert_if
 
+
+// Exceptions interface
+
+interface uvmt_cv32e40x_exceptions_if (
+  input  clk_i,
+
+  input  wb_valid
+);
+
+  clocking mon_cb @(posedge clk_i);
+    input #1step
+
+    wb_valid
+  endclocking : mon_cb
+
+endinterface : uvmt_cv32e40x_exceptions_if
+
+
 `endif // __UVMT_CV32E40X_TB_IFS_SV__
