@@ -19,7 +19,7 @@
 `uvm_analysis_imp_decl(_rvfi)
 
 
-covergroup cg_exceptions
+covergroup cg_rvfi
   with function sample(uvma_rvfi_instr_seq_item_c#(ILEN, XLEN) rvfi);
 
   `per_instance_fcov
@@ -76,13 +76,35 @@ covergroup cg_exceptions
     ignore_bins ig = binsof(cp_mcause) intersect {0};  // Can't trap with mcause == reset value
   }
 
-endgroup : cg_exceptions
+endgroup : cg_rvfi
+
+
+covergroup cg_vif;
+
+  // TODO cp_ibus_breakpoint_addr;
+  // TODO cp_ibus_pma;
+  // TODO cp_ibus_buserr;
+  // TODO cp_instr_illegal;
+  // TODO cp_instr_ecall;
+  // TODO cp_instr_ebreak;
+  // TODO cp_dbus_breakpoint_addr;
+  // TODO cp_dbus_breakpoint_data;
+  // TODO cp_dbus_pma_store_misaligned;
+  // TODO cp_dbus_pma_store_amo;
+  // TODO cp_dbus_pma_store_conditional;
+  // TODO cp_dbus_pma_load_misaligned;
+  // TODO cp_dbus_pma_load_reserved;
+
+  // TODO crosses
+
+endgroup : cg_vif;
 
 
 class uvme_exceptions_covg extends uvm_component;
 
   uvme_cv32e40x_cntxt_c  cntxt;
-  cg_exceptions  exceptions_cg;
+  cg_rvfi  rvfi_cg;
+  cg_vif  vif_cg;
   uvm_analysis_imp_rvfi#(uvma_rvfi_instr_seq_item_c#(ILEN, XLEN), uvme_exceptions_covg)  rvfi_mon_export;
 
   `uvm_component_utils(uvme_exceptions_covg);
@@ -108,7 +130,8 @@ function void uvme_exceptions_covg::build_phase(uvm_phase phase);
 
   super.build_phase(phase);
 
-  exceptions_cg = new();
+  rvfi_cg = new();
+  vif_cg = new();
 
   void'(uvm_config_db#(uvme_cv32e40x_cntxt_c)::get(this, "", "cntxt", cntxt));
   if (cntxt == null) `uvm_fatal("EXCEPTIONSCOVG", "No cntxt object passed to model");
@@ -122,8 +145,7 @@ task uvme_exceptions_covg::run_phase(uvm_phase phase);
 
   while (1) begin
     @(cntxt.exceptions_vif.mon_cb);
-
-    // TODO sample
+    vif_cg.sample();
   end
 
 endtask : run_phase
@@ -131,6 +153,6 @@ endtask : run_phase
 
 function void uvme_exceptions_covg::write_rvfi(uvma_rvfi_instr_seq_item_c#(ILEN, XLEN) trn);
 
-  exceptions_cg.sample(trn);
+  rvfi_cg.sample(trn);
 
 endfunction : write_rvfi
