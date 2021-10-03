@@ -20,13 +20,12 @@ module uvmt_cv32e40x_exceptions_assert (
   uvmt_cv32e40x_exceptions_if  eif
 );
 
-
   //TODO assign eif.is_ibus_breakpoint_addr = ???;
   //TODO assign eif.is_ibus_pma = ???;
   assign eif.is_ibus_buserr = eif.wb_valid && eif.err;
   assign eif.is_instr_illegal = eif.wb_valid && eif.illegal_insn;
-  //TODO assign eif.is_instr_ecall = ???;
-  //TODO assign eif.is_instr_ebreak = ???;
+  assign eif.is_instr_ecall = eif.wb_valid && (eif.rdata == 32'h 00000073);
+  assign eif.is_instr_ebreak = eif.wb_valid && (eif.rdata inside {32'h 00100073, 32'h 9002});
   //TODO assign eif.is_dbus_breakpoint_addr = ???;
   //TODO assign eif.is_dbus_breakpoint_data = ???;
   //TODO assign eif.is_dbus_pma_store_misaligned = ???;

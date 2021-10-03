@@ -252,6 +252,7 @@ interface uvmt_cv32e40x_exceptions_if (
   input  wb_valid,
   input  illegal_insn,
   input  err,
+  input  [31:0] rdata,
 
   output is_ibus_breakpoint_addr,
   output is_ibus_pma,

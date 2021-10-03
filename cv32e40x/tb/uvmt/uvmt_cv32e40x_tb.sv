@@ -431,6 +431,7 @@ module uvmt_cv32e40x_tb;
         .wb_valid (core_i.wb_stage_i.wb_valid),
         .illegal_insn (core_i.ex_wb_pipe.illegal_insn),
         .err (core_i.ex_wb_pipe.instr.bus_resp.err),
+        .rdata (core_i.ex_wb_pipe.instr.bus_resp.rdata),
 
         .is_ibus_breakpoint_addr (),
         .is_ibus_pma (),
