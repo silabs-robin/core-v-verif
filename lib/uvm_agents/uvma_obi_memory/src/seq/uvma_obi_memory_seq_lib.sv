@@ -33,6 +33,7 @@
 `include "uvma_obi_memory_vp_rand_num_seq.sv"
 `include "uvma_obi_memory_vp_sig_writer_seq.sv"
 `include "uvma_obi_memory_vp_virtual_printer_seq.sv"
+`include "uvma_obi_memory_vp_fencei_tamper_seq.sv"
 
 `include "uvma_obi_memory_slv_seq.sv"
 `include "uvma_obi_memory_fw_preload_seq.sv"

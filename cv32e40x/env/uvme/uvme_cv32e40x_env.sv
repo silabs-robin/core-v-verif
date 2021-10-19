@@ -441,6 +441,8 @@ function void uvme_cv32e40x_env_c::install_vp_register_seqs(uvma_obi_memory_slv_
 
    void'(data_slv_seq.register_vp_vseq("vp_cycle_counter", CV_VP_CYCLE_COUNTER_BASE, uvma_obi_memory_vp_cycle_counter_seq_c::get_type()));
 
+   void'(data_slv_seq.register_vp_vseq("vp_fencei_tamper", CV_VP_FENCEI_TAMPER_BASE, uvma_obi_memory_vp_fencei_tamper_seq_c::get_type()));
+
    begin
       uvma_obi_memory_vp_directed_slv_resp_seq_c#(2) vp_seq;
       if (!$cast(vp_seq, data_slv_seq.register_vp_vseq("vp_directed_slv_resp", CV_VP_OBI_SLV_RESP_BASE, uvma_obi_memory_vp_directed_slv_resp_seq_c#(2)::get_type()))) begin
