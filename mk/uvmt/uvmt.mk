@@ -84,12 +84,12 @@ export RUN_INDEX       ?= 0
 # Common output directories
 SIM_RESULTS             ?= $(if $(CV_RESULTS),$(abspath $(CV_RESULTS))/$(SIMULATOR)_results,$(MAKE_PATH)/$(SIMULATOR)_results)
 SIM_CFG_RESULTS          = $(SIM_RESULTS)/$(CFG)
-SIM_BSP_RESULTS          = $(SIM_CFG_RESULTS)/bsp
 SIM_COREVDV_RESULTS      = $(SIM_CFG_RESULTS)/corev-dv
 SIM_LDGEN_RESULTS        = $(SIM_CFG_RESULTS)/$(LDGEN)
 SIM_TEST_RESULTS         = $(SIM_CFG_RESULTS)/$(TEST)
 SIM_RUN_RESULTS          = $(SIM_TEST_RESULTS)/$(RUN_INDEX)
 SIM_TEST_PROGRAM_RESULTS = $(SIM_RUN_RESULTS)/test_program
+SIM_BSP_RESULTS          = $(SIM_TEST_PROGRAM_RESULTS)/bsp
 
 # EMBench options
 EMB_TYPE           ?= speed
@@ -124,6 +124,8 @@ export DV_OVPM_HOME             = $(CORE_V_VERIF)/vendor_lib/imperas
 export DV_OVPM_MODEL            = $(DV_OVPM_HOME)/imperas_DV_COREV
 
 export DV_OVPM_DESIGN           = $(DV_OVPM_HOME)/design
+
+export DV_SVLIB_PATH            = $(CORE_V_VERIF)/$(CV_CORE_LC)/vendor_lib/verilab
 
 DV_UVMT_SRCS                  = $(wildcard $(DV_UVMT_PATH)/*.sv))
 
@@ -171,6 +173,9 @@ export DESIGN_RTL_DIR = $(CV_CORE_PKG)/rtl
 RTLSRC_HOME   := $(CV_CORE_PKG)/rtl
 RTLSRC_INCDIR := $(RTLSRC_HOME)/include
 
+# SVLIB
+SVLIB_PKG            := $(CORE_V_VERIF)/$(CV_CORE_LC)/vendor_lib/verilab/svlib
+
 ###############################################################################
 # Seed management for constrained-random sims
 SEED    ?= 1
@@ -205,6 +210,8 @@ clone_compliance: $(COMPLIANCE_PKG)
 clone_dpi_dasm_spike:
 	$(CLONE_DPI_DASM_SPIKE_CMD)
 
+clone_svlib: $(SVLIB_PKG)
+
 $(CV_CORE_PKG):
 	$(CLONE_CV_CORE_CMD)
 
@@ -219,6 +226,9 @@ $(EMBENCH_PKG):
 
 $(DPI_DASM_SPIKE_PKG):
 	$(CLONE_DPI_DASM_SPIKE_CMD)
+
+$(SVLIB_PKG):
+	$(CLONE_SVLIB_CMD)
 
 ###############################################################################
 # RISC-V Compliance Test-suite
@@ -295,7 +305,7 @@ dah:
 embench: $(EMBENCH_PKG)
 	$(CORE_V_VERIF)/bin/run_embench.py \
 		-c $(CV_CORE) \
-		-cc $(RISCV_EXE_PREFIX)gcc \
+		-cc $(RISCV_EXE_PREFIX)$(RISCV_CC) \
 		-sim $(SIMULATOR) \
 		-t $(EMB_TYPE) \
 		--timeout $(EMB_TIMEOUT) \
@@ -394,3 +404,5 @@ clean_embench:
 clean_dpi_dasm_spike:
 	rm -rf $(DPI_DASM_SPIKE_PKG)
 
+clean_svlib:
+	rm -rf $(SVLIB_PKG)

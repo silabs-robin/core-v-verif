@@ -94,7 +94,16 @@ module uvmt_cv32e40x_tb;
                              .INSTR_RDATA_WIDTH (ENV_PARAM_INSTR_DATA_WIDTH),
                              .RAM_ADDR_WIDTH    (ENV_PARAM_RAM_ADDR_WIDTH)
                             )
-                            dut_wrap (.*);
+                            dut_wrap (
+                              .clknrst_if(clknrst_if),
+                              .interrupt_if(interrupt_if),
+                              .vp_status_if(vp_status_if),
+                              .core_cntrl_if(core_cntrl_if),
+                              .core_status_if(core_status_if),
+                              .obi_instr_if_i(obi_instr_if_i),
+                              .obi_data_if_i(obi_data_if_i),
+                              .fencei_if_i(fencei_if_i),
+                              .*);
 
   bind cv32e40x_wrapper
     uvma_rvfi_instr_if#(uvme_cv32e40x_pkg::ILEN,
@@ -339,6 +348,22 @@ module uvmt_cv32e40x_tb;
                                                       .irq_ack_o(core_i.irq_ack),
                                                       .irq_id_o(core_i.irq_id),
                                                       .*);
+
+  // Fence.i assertions
+
+  bind cv32e40x_wrapper
+    uvmt_cv32e40x_fencei_assert  fencei_assert_i (
+      .wb_valid (core_i.wb_stage_i.wb_valid),
+      .wb_instr_valid (core_i.ex_wb_pipe.instr_valid),
+      .wb_fencei_insn (core_i.ex_wb_pipe.fencei_insn),
+      .wb_pc (core_i.ex_wb_pipe.pc),
+
+      .rvfi_valid (rvfi_i.rvfi_valid),
+      .rvfi_intr (rvfi_i.rvfi_intr),
+      .rvfi_dbg_mode (rvfi_i.rvfi_dbg_mode),
+
+      .*
+    );
 
 
   // Debug assertion and coverage interface
@@ -612,6 +637,20 @@ module uvmt_cv32e40x_tb;
 
    assign core_cntrl_if.clk = clknrst_if.clk;
 
+   // Informational print message on loading of OVPSIM ISS to benchmark some elf image loading times
+   // OVPSIM runs its initialization at the #1ns timestamp, and should dominate the initial startup time
+   longint start_ovpsim_init_time;
+   longint end_ovpsim_init_time;
+   initial begin
+      if (!$test$plusargs("DISABLE_OVPSIM")) begin
+        #0.9ns;
+        `uvm_info("OVPSIM", $sformatf("Start benchmarking OVPSIM initialization"), UVM_LOW)
+        start_ovpsim_init_time = svlib_pkg::sys_dayTime();
+        #1.1ns;
+        end_ovpsim_init_time = svlib_pkg::sys_dayTime();
+        `uvm_info("OVPSIM", $sformatf("Initialization time: %0d seconds", end_ovpsim_init_time - start_ovpsim_init_time), UVM_LOW)
+      end
+    end
 
    //TODO verify these are correct with regards to isacov function
    always @(dut_wrap.cv32e40x_wrapper_i.rvfi_instr_if_0_i.rvfi_valid) -> isacov_if.retire;
@@ -715,5 +754,3 @@ endmodule : uvmt_cv32e40x_tb
 `default_nettype wire
 
 `endif // __UVMT_CV32E40X_TB_SV__
-
-
