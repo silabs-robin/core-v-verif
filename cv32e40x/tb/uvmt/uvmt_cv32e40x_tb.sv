@@ -366,6 +366,15 @@ module uvmt_cv32e40x_tb;
       .*
     );
 
+  // NMI assertions
+
+  bind cv32e40x_wrapper
+    uvmt_cv32e40x_nmi_assert  nmi_assert_i (
+      .pending_nmi(core_i.controller_i.controller_fsm_i.pending_nmi),
+      .nmi_allowed(core_i.controller_i.controller_fsm_i.nmi_allowed),
+      .*
+    );
+
 
   // Debug assertion and coverage interface
 
