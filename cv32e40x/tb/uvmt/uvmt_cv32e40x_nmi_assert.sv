@@ -35,7 +35,8 @@ module uvmt_cv32e40x_nmi_assert
   input        fetch_enable_i
 );
 
-  default clocking cb @(posedge clk_i); endclocking
+  default clocking @(posedge clk_i); endclocking
+  default disable iff (!rst_ni);
   string info_tag = "CV32E40X_NMI_ASSERT";
 
   sequence s_rvfi_intr_ante;
@@ -51,9 +52,9 @@ module uvmt_cv32e40x_nmi_assert
   c_rvfi_intr_store: cover property (s_rvfi_intr_ante ##0 (rvfi_csr_mcause_rdata == 32'h 8000_0081));
 
   a_addr_stable: assert property (
-    fetch_enable_i
+    (fetch_enable_i && rst_ni)
     |=>
-    $stable(nmi_addr_i)
+    always $stable(nmi_addr_i)
   ) else `uvm_error(info_tag, "TODO");
 
 endmodule : uvmt_cv32e40x_nmi_assert
