@@ -63,4 +63,8 @@ module uvmt_cv32e40x_nmi_assert
     always $stable(nmi_addr_i)
   ) else `uvm_error(info_tag, "TODO");
 
+  a_addr_aligned: assert property (
+    nmi_addr_i[1:0] == 2'b 00
+  ) else `uvm_error(info_tag, "TODO");
+
 endmodule : uvmt_cv32e40x_nmi_assert
