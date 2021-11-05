@@ -370,8 +370,12 @@ module uvmt_cv32e40x_tb;
 
   bind cv32e40x_wrapper
     uvmt_cv32e40x_nmi_assert  nmi_assert_i (
-      .pending_nmi(core_i.controller_i.controller_fsm_i.pending_nmi),
-      .nmi_allowed(core_i.controller_i.controller_fsm_i.nmi_allowed),
+      .pending_nmi (core_i.controller_i.controller_fsm_i.pending_nmi),
+      .nmi_allowed (core_i.controller_i.controller_fsm_i.nmi_allowed),
+
+      .rvfi_valid (rvfi_i.rvfi_valid),
+      .rvfi_csr_mcause_rdata (dut_wrap.cv32e40x_wrapper_i.rvfi_i.rvfi_csr_mcause_rdata),  // Assuming rmask == -1
+
       .*
     );
 

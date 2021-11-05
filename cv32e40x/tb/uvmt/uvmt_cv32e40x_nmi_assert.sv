@@ -23,16 +23,25 @@ module uvmt_cv32e40x_nmi_assert
   input rst_ni,
 
   input pending_nmi,
-  input nmi_allowed
+  input nmi_allowed,
+
+  input rvfi_valid,
+  input [31:0] rvfi_csr_mcause_rdata
 );
 
   default clocking cb @(posedge clk_i); endclocking
   string info_tag = "CV32E40X_NMI_ASSERT";
 
-  a_rvfi_intr: assert property (
+  sequence s_rvfi_intr_ante;
     pending_nmi && nmi_allowed
+    ##1 rvfi_valid[->1];
+  endsequence
+  a_rvfi_intr: assert property (
+    s_rvfi_intr_ante
     |->
-    1  // TODO:ropeders
-  ) else `uvm_error(info_tag, "TODO");
+    1 //TODO
+  ) else `uvm_error(info_tag, "rvfi did not signal 'intr' upon entering nmi handler");
+  c_rvfi_intr_load: cover property (s_rvfi_intr_ante ##0 (rvfi_csr_mcause_rdata == 32'h 8000_0080));
+  c_rvfi_intr_store: cover property (s_rvfi_intr_ante ##0 (rvfi_csr_mcause_rdata == 32'h 8000_0081));
 
 endmodule : uvmt_cv32e40x_nmi_assert
