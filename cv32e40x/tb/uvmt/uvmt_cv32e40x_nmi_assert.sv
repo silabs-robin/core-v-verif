@@ -29,6 +29,9 @@ module uvmt_cv32e40x_nmi_assert
   // RVFI signals
   input        rvfi_valid,
   input [31:0] rvfi_csr_mcause_rdata,
+  input [31:0] rvfi_csr_mcause_rmask,
+  input [31:0] rvfi_csr_mcause_wdata,
+  input [31:0] rvfi_csr_mcause_wmask,
 
   // Core signals
   input [31:0] nmi_addr_i,
@@ -39,6 +42,9 @@ module uvmt_cv32e40x_nmi_assert
   default disable iff (!rst_ni);
   string info_tag = "CV32E40X_NMI_ASSERT";
 
+  logic [31:0] rvfi_csr_mcause;
+  assign rvfi_csr_mcause = (rvfi_csr_mcause_rdata & rvfi_csr_mcause_rmask) | (rvfi_csr_mcause_wdata & rvfi_csr_mcause_wmask);
+
   sequence s_rvfi_intr_ante;
     pending_nmi && nmi_allowed
     ##1 rvfi_valid[->1];
@@ -48,8 +54,8 @@ module uvmt_cv32e40x_nmi_assert
     |->
     1 //TODO
   ) else `uvm_error(info_tag, "rvfi did not signal 'intr' upon entering nmi handler");
-  c_rvfi_intr_load: cover property (s_rvfi_intr_ante ##0 (rvfi_csr_mcause_rdata == 32'h 8000_0080));
-  c_rvfi_intr_store: cover property (s_rvfi_intr_ante ##0 (rvfi_csr_mcause_rdata == 32'h 8000_0081));
+  c_rvfi_intr_load: cover property (s_rvfi_intr_ante ##0 (rvfi_csr_mcause == 32'h 8000_0080));
+  c_rvfi_intr_store: cover property (s_rvfi_intr_ante ##0 (rvfi_csr_mcause == 32'h 8000_0081));
 
   a_addr_stable: assert property (
     (fetch_enable_i && rst_ni)
