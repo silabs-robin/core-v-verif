@@ -378,6 +378,7 @@ module uvmt_cv32e40x_tb;
       .rvfi_csr_mcause_rmask (rvfi_i.rvfi_csr_mcause_rmask),
       .rvfi_csr_mcause_wdata (rvfi_i.rvfi_csr_mcause_wdata),
       .rvfi_csr_mcause_wmask (rvfi_i.rvfi_csr_mcause_wmask),
+      .rvfi_intr (rvfi_i.rvfi_intr),
 
       .nmi_addr_i (core_i.nmi_addr_i),
       .fetch_enable_i (core_i.fetch_enable_i),
