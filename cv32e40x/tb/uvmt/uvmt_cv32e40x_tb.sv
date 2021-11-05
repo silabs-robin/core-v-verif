@@ -374,7 +374,10 @@ module uvmt_cv32e40x_tb;
       .nmi_allowed (core_i.controller_i.controller_fsm_i.nmi_allowed),
 
       .rvfi_valid (rvfi_i.rvfi_valid),
-      .rvfi_csr_mcause_rdata (dut_wrap.cv32e40x_wrapper_i.rvfi_i.rvfi_csr_mcause_rdata),  // Assuming rmask == -1
+      .rvfi_csr_mcause_rdata (rvfi_i.rvfi_csr_mcause_rdata),  // Assuming rmask == -1
+
+      .nmi_addr_i (core_i.nmi_addr_i),
+      .fetch_enable_i (core_i.fetch_enable_i),
 
       .*
     );

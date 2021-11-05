@@ -22,11 +22,17 @@ module uvmt_cv32e40x_nmi_assert
   input clk_i,
   input rst_ni,
 
+  // Controller signals
   input pending_nmi,
   input nmi_allowed,
 
-  input rvfi_valid,
-  input [31:0] rvfi_csr_mcause_rdata
+  // RVFI signals
+  input        rvfi_valid,
+  input [31:0] rvfi_csr_mcause_rdata,
+
+  // Core signals
+  input [31:0] nmi_addr_i,
+  input        fetch_enable_i
 );
 
   default clocking cb @(posedge clk_i); endclocking
@@ -43,5 +49,11 @@ module uvmt_cv32e40x_nmi_assert
   ) else `uvm_error(info_tag, "rvfi did not signal 'intr' upon entering nmi handler");
   c_rvfi_intr_load: cover property (s_rvfi_intr_ante ##0 (rvfi_csr_mcause_rdata == 32'h 8000_0080));
   c_rvfi_intr_store: cover property (s_rvfi_intr_ante ##0 (rvfi_csr_mcause_rdata == 32'h 8000_0081));
+
+  a_addr_stable: assert property (
+    fetch_enable_i
+    |=>
+    $stable(nmi_addr_i)
+  ) else `uvm_error(info_tag, "TODO");
 
 endmodule : uvmt_cv32e40x_nmi_assert
