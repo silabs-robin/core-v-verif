@@ -392,7 +392,7 @@ module uvmt_cv32e40s_debug_assert
         else `uvm_error(info_tag, "Executing dret in M-mode did not result in illegal instruction");
 
 
-     // dret in D-mode will restore pc (if no re-entry or interrupt intervenes)
+    // dret in D-mode will restore pc (if no re-entry or interrupt intervenes)
 
     property p_dmode_dret_pc;
         int dpc; (1, dpc =cov_assert_if.rvfi_csr_dpc_rdata)
