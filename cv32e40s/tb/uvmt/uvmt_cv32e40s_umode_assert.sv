@@ -57,10 +57,10 @@ module  uvmt_cv32e40s_umode_assert
 
   string info_tag = "CV32E40S_UMODE_ASSERT";
 
-  localparam int MISA_U_POS = 20;
-  localparam int MISA_S_POS = 18;
-  localparam int MISA_N_POS = 13;
-
+  // Field pos/len within CSRs
+  localparam int MISA_U_POS  = 20;
+  localparam int MISA_S_POS  = 18;
+  localparam int MISA_N_POS  = 13;
   localparam int MPP_POS     = 11;
   localparam int MPP_LEN     =  2;
   localparam int SPP_POS     =  8;
@@ -85,9 +85,11 @@ module  uvmt_cv32e40s_umode_assert
   localparam int MPRVEN_POS  =  4;
   localparam int MPRVEN_LEN  =  1;
 
+  // Privmode encoding
   localparam int MODE_U = 2'b 00;
   localparam int MODE_M = 2'b 11;
 
+  // Instruction word opcodes/masks
   localparam int MRET_IDATA    = 32'b 0011000_00010_00000_000_00000_1110011;
   localparam int WFI_IDATA     = 32'b 0001000_00101_00000_000_00000_1110011;
   localparam int CUSTOM0_IDATA = 32'b 100011_00000000000_000_00000_1110011;
@@ -98,6 +100,7 @@ module  uvmt_cv32e40s_umode_assert
   localparam int EBREAK_IDATA  = 32'b 000000000001_00000_000_00000_1110011;
   localparam int ECALL_IDATA   = 32'b 000000000000_00000_000_00000_1110011;
 
+  // CSR addresses
   localparam int CSRADDR_USTATUS    = 12'h 000;
   localparam int CSRADDR_UIE        = 12'h 004;
   localparam int CSRADDR_UTVEC      = 12'h 005;
@@ -113,6 +116,7 @@ module  uvmt_cv32e40s_umode_assert
   localparam int CSRADDR_MIDELEG    = 12'h 303;
   localparam int CSRADDR_MCOUNTEREN = 12'h 306;
 
+  // Helper signals
   wire [31:0]  mstatus_writestate  = (rvfi_csr_mstatus_wdata &  rvfi_csr_mstatus_wmask);
   wire [31:0]  mstatus_legacystate = (rvfi_csr_mstatus_rdata & ~rvfi_csr_mstatus_wmask);
   wire [31:0]  mstatus_poststate   = (mstatus_writestate | mstatus_legacystate);
