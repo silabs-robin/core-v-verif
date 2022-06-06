@@ -181,28 +181,6 @@ module  uvmt_cv32e40s_umode_assert
     (rvfi_insn[14:12] inside {1, 2, 3, 5, 6, 7})
   );
 
-  reg         rvficycle_hasfetched;
-  reg [31:0]  rvficycle_firstfetchaddr;
-  always @(posedge clk_i) begin
-    if (rst_ni == 0) begin
-      rvficycle_hasfetched <= 0;
-      rvficycle_firstfetchaddr  <= 0;
-    end else begin
-      if (rvfi_valid) begin
-        rvficycle_hasfetched <= 0;
-        rvficycle_firstfetchaddr  <= 0;
-      end
-
-      if (impu_valid) begin
-        rvficycle_hasfetched <= 1;
-
-        if (rvfi_valid || !rvficycle_hasfetched) begin
-          rvficycle_firstfetchaddr  <= impu_addr;
-        end
-      end
-    end
-  end
-
   reg [1:0]  effective_rvfi_privmode;
   always @(*) begin
     effective_rvfi_privmode = MODE_U;
@@ -444,18 +422,6 @@ module  uvmt_cv32e40s_umode_assert
     (rvfi_csr_mstatus_rdata[MPRV_POS+:MPRV_LEN] == 0)
     // TODO:ropeders cover mprv 0->0 and 1->0
   ) else `uvm_error(info_tag, "exiting dmode to umode should clear mprv");
-
-  property p_refetch;
-    int mode0;
-    ( rvfi_valid, mode0 = rvfi_mode)  ##1
-    ((rvfi_valid [->1]) ##0 (rvfi_mode != mode0))
-    |->
-    rvficycle_hasfetched  &&
-    (rvficycle_firstfetchaddr == rvfi_pc_rdata);
-  endproperty : p_refetch
-  a_refetch: assert property (
-    p_refetch
-  ) else `uvm_error(info_tag, "priv mode change must cause refetch");
 
   a_umode_extensions: assert property (
     rvfi_valid
