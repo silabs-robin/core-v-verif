@@ -1,10 +1,14 @@
 .section .text
 
 
+// Functions
 .global myfunc
 .global run_in_umode
 .global setup_pmp
-.global set_mmode
+.global handler_set_mmode
+
+// Flags
+.global gbl_request_mmode
 
 
 utext_start:
@@ -22,15 +26,33 @@ utext_end:
 
 // void run_in_umode(int (*funptr)(void))
 run_in_umode:
-	// Zero "mstatus" to set MPP=umode (note: shouldve bitmasked)
+	// Save "ra" to stack
+	addi	sp, sp, -4
+	sw	ra, 0(sp)
+
+	// Zero "mstatus" to set MPP=umode (note: shouldve bitcleared)
 	addi	t0, x0, 0
 	csrrw   x0, mstatus, t0
-
 	// Set "mepc" to the func ptr in arg 0
 	csrrw	x0, mepc, a0
-
-	// mret to func ptr in arg 0, instead of returning to caller
+	// Set link register
+	la	ra, run_in_umode_cont
+	// call "funptr" with mret
 	mret
+run_in_umode_cont:
+
+	// Request trap handler to return to mmode
+	la	t0, gbl_request_mmode
+	li	t1, 1
+	sw	t1, 0(t0)
+	ecall
+
+	// Restore "ra" from stack
+	lw	ra, 0(sp)
+	addi	sp, sp, 4
+
+	// Return to caller
+	jalr	x0, 0(ra)
 
 
 // void setup_pmp(void)
@@ -39,22 +61,23 @@ setup_pmp:
 	li	t0, 0xFFFFFFFF
 	csrrw	x0, pmpaddr0, t0
 
-	// Set pmp region TOR and executable
-	li	t0, ((1 << 3) + (1 << 2))
+	// Set pmp region TOR and read/write/execute
+	li	t0, ((1 << 3) + (7 << 0))
 	csrrw	x0, pmpcfg0, t0
 
 	// Return to caller
 	jalr	x0, 0(ra)
 
 
-// extern volatile void set_mmode(void)
-set_mmode:
-	// Set "mstatus.MPP" to M-mode (note: shouldve bitmasked)
+handler_set_mmode:
+	// Set "mstatus.MPP" to M-mode (note: shouldve bitset)
 	li	t0, (3 << 11)
 	csrrw   x0, mstatus, t0
 
-	// Set "mepc" to the link register
-	csrrw	x0, mepc, a0
+	// Incrument "mepc"
+	csrrw	t0, mepc, x0
+	addi	t0, t0, 4
+	csrrw	x0, mepc, t0
 
-	// Return with mret instead of jalr
+	// Return to trap-requester
 	mret
