@@ -182,42 +182,38 @@ task uvma_rvfi_instr_mon_c::monitor_rvfi_instr();
             mon_trn.csrs[csr] = csr_trn;
          end
 
-         // Decode interrupts that need to be communicated to ISS (external or NMI bus faults)
-         if (mon_trn.intr) begin
-            // The cause of the interrupt should be in the "rdata" field of the mcause CSR RVFI port
-            bit [XLEN-1:0] csr_mcause = mon_trn.csrs["mcause"].rdata;
-
+         //TODO:MT update with parity for 40S
+         mon_trn.insn_nmi = 0;
+         if (mon_trn.intr.intr) begin
+            // NMI detected
+            if ((cfg.nmi_load_fault_enabled && mon_trn.intr.cause == cfg.nmi_load_fault_cause) ||
+               (cfg.nmi_store_fault_enabled && mon_trn.intr.cause == cfg.nmi_store_fault_cause)) begin
+               mon_trn.insn_nmi = 1;
+               mon_trn.insn_nmi_cause = mon_trn.intr.cause;
+            end
             // External interrupt
-            if (csr_mcause[31]) begin
-               // NMI - Load fault
-               if (cfg.nmi_load_fault_enabled && csr_mcause[XLEN-2:0] == cfg.nmi_load_fault_cause) begin
-                  mon_trn.insn_nmi_load_fault = 1;
-               end
-               // NMI - Store fault
-               else if (cfg.nmi_store_fault_enabled && csr_mcause[XLEN-2:0] == cfg.nmi_store_fault_cause) begin
-                  mon_trn.insn_nmi_store_fault = 1;
-               end
-               // External interrupt
-               else begin
-                  mon_trn.insn_interrupt    = 1;
-                  mon_trn.insn_interrupt_id = { 1'b0, csr_mcause[XLEN-2:0] };
-               end
+            else begin
+               mon_trn.insn_interrupt    = 1;
+               mon_trn.insn_interrupt_id = { 1'b0, mon_trn.intr.cause };
             end
          end
 
          dcsr_ret_data = mon_trn.csrs["dcsr"].get_csr_retirement_data();
+
          // In debug mode, detect NMIP event for a data bus error
          if (mon_trn.dbg_mode &&
              !last_dcsr_nmip &&
              mon_trn.nmip[0] &&
              dcsr_ret_data[3])
          begin
-            `uvm_info("RVFIMON", $sformatf("Debug NMIP"), UVM_LOW);
+            `uvm_info("RVFIMON", $sformatf("Debug NMIP"), UVM_LOW)
 
             if (mon_trn.nmip[1] == 0) begin
-               mon_trn.insn_nmi_load_fault = 1;
+               mon_trn.insn_nmi = 1;
+               mon_trn.insn_nmi_cause = cfg.nmi_load_fault_cause;
             end else begin
-               mon_trn.insn_nmi_store_fault = 1;
+               mon_trn.insn_nmi = 1;
+               mon_trn.insn_nmi_cause = cfg.nmi_store_fault_cause;
             end
          end
 

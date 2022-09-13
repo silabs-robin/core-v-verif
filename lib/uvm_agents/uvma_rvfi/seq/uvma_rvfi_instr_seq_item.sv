@@ -28,9 +28,9 @@ class uvma_rvfi_instr_seq_item_c#(int ILEN=DEFAULT_ILEN,
    rand bit [CYCLE_CNT_WL-1:0]   cycle_cnt;
    rand bit [ORDER_WL-1:0]       order;
    rand bit [ILEN-1:0]           insn;
-   rand bit [TRAP_WL-1:0]        trap;
+   rand rvfi_trap_t              trap;
    rand bit                      halt;
-   rand bit                      intr;
+   rand rvfi_intr_t              intr;
    rand uvma_rvfi_mode           mode;
    rand bit [IXL_WL-1:0]         ixl;
    rand bit [RVFI_DBG_WL-1:0]    dbg;
@@ -40,8 +40,8 @@ class uvma_rvfi_instr_seq_item_c#(int ILEN=DEFAULT_ILEN,
    rand bit                      insn_interrupt;
    rand int unsigned             insn_interrupt_id;
    rand bit                      insn_bus_fault;
-   rand bit                      insn_nmi_store_fault;
-   rand bit                      insn_nmi_load_fault;
+   rand bit                      insn_nmi;
+   rand int unsigned             insn_nmi_cause;
 
    rand bit [XLEN-1:0]           pc_rdata;
    rand bit [XLEN-1:0]           pc_wdata;
@@ -84,8 +84,8 @@ class uvma_rvfi_instr_seq_item_c#(int ILEN=DEFAULT_ILEN,
       `uvm_field_int(insn_interrupt, UVM_DEFAULT)
       `uvm_field_int(insn_interrupt_id, UVM_DEFAULT)
       `uvm_field_int(insn_bus_fault, UVM_DEFAULT)
-      `uvm_field_int(insn_nmi_load_fault, UVM_DEFAULT)
-      `uvm_field_int(insn_nmi_store_fault, UVM_DEFAULT)
+      `uvm_field_int(insn_nmi, UVM_DEFAULT)
+      `uvm_field_int(insn_nmi_cause, UVM_DEFAULT)
       `uvm_field_enum(uvma_rvfi_mode, mode, UVM_DEFAULT)
       `uvm_field_int(ixl, UVM_DEFAULT)
       `uvm_field_int(pc_rdata, UVM_DEFAULT)
@@ -189,10 +189,10 @@ function string uvma_rvfi_instr_seq_item_c::convert2string();
       convert2string = $sformatf("%s HALT", convert2string);
    if (insn_interrupt)
       convert2string = $sformatf("%s INTR %0d", convert2string, this.insn_interrupt_id);
-   if (insn_nmi_load_fault)
-      convert2string = $sformatf("%s NMI LOAD", convert2string);
-   if (insn_nmi_store_fault)
-      convert2string = $sformatf("%s NMI STORE", convert2string);
+   if (insn_nmi)
+      convert2string = $sformatf("%s NMI DECTED", convert2string);
+   if (insn_nmi_cause)
+      convert2string = $sformatf("%s NMI CAUSE: %0d", convert2string, this.insn_nmi_cause);
    if (insn_bus_fault)
       convert2string = $sformatf("%s INSN_BUS_FAULT", convert2string);
    if (dbg)
@@ -244,31 +244,31 @@ endfunction : is_compressed_insn
 
 function bit uvma_rvfi_instr_seq_item_c::is_trap();
 
-   return trap[TRAP_EXCP_LSB];
+   return trap.trap;
 
 endfunction : is_trap
 
 function bit uvma_rvfi_instr_seq_item_c::is_debug_entry_trap();
 
-   return trap[TRAP_DBG_ENTRY_LSB];
+   return trap.debug;
 
 endfunction : is_debug_entry_trap
 
 function bit uvma_rvfi_instr_seq_item_c::is_nondebug_entry_trap();
 
-   return trap[TRAP_NONDBG_ENTRY_LSB];
+   return trap.exception;
 
 endfunction : is_nondebug_entry_trap
 
 function bit [TRAP_CAUSE_WL-1:0] uvma_rvfi_instr_seq_item_c::get_trap_cause();
 
-   return trap[TRAP_CAUSE_LSB +: TRAP_CAUSE_WL];
+   return trap.exception_cause;
 
 endfunction : get_trap_cause
 
 function bit [TRAP_DBG_CAUSE_WL-1:0] uvma_rvfi_instr_seq_item_c::get_trap_debug_cause();
 
-   return trap[TRAP_DBG_CAUSE_LSB +: TRAP_DBG_CAUSE_WL];
+   return trap.debug_cause;
 
 endfunction : get_trap_debug_cause
 
