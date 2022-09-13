@@ -114,16 +114,15 @@ class uvme_cv32e40s_cfg_c extends uvma_core_cntrl_cfg_c;
          ext_zbc_supported == 1;
          ext_zbs_supported == 1;
       }
-      ext_zbe_supported    == 0;
-      ext_zbf_supported    == 0;
-      ext_zbm_supported    == 0;
-      ext_zbp_supported    == 0;
-      ext_zbr_supported    == 0;
-      ext_zbt_supported    == 0;
-      ext_nonstd_supported == 1;
+      ext_zbe_supported == 0;
+      ext_zbf_supported == 0;
+      ext_zbm_supported == 0;
+      ext_zbp_supported == 0;
+      ext_zbr_supported == 0;
+      ext_zbt_supported == 0;
 
       mode_s_supported == 0;
-      mode_u_supported == 1;
+      mode_u_supported == 0;
       pmp_supported == 0;
       debug_supported == 1;
 
@@ -144,13 +143,14 @@ class uvme_cv32e40s_cfg_c extends uvma_core_cntrl_cfg_c;
 
    constraint default_cv32e40s_boot_cons {
       (!mhartid_plusarg_valid)           -> (mhartid           == 'h0000_0000);
-      (!mimpid_patch_plusarg_valid)      -> (mimpid_patch      == 'h0        );
-      (!mimpid_plusarg_valid)            -> (mimpid            == {12'b0, MIMPID_MAJOR, 4'b0, MIMPID_MINOR, 4'b0, mimpid_patch[3:0]});
+      (!mimpid_patch_plusarg_valid)             -> (mimpid_patch      == 'h0        );
+      (!mimpid_plusarg_valid)                   -> (mimpid            == {12'b0, MIMPID_MAJOR, 4'b0, MIMPID_MINOR, 4'b0, mimpid_patch[3:0]});
       (!boot_addr_plusarg_valid)         -> (boot_addr         == 'h0000_0080);
       (!mtvec_addr_plusarg_valid)        -> (mtvec_addr        == 'h0000_0000);
-      (!nmi_addr_plusarg_valid)          -> (nmi_addr          == 'h0010_0000);
+      (!nmi_addr_plusarg_valid)                 -> (nmi_addr          == mtvec_addr + 'h3C /* 4*15 */ );
       (!dm_halt_addr_plusarg_valid)      -> (dm_halt_addr      == 'h1a11_0800);
       (!dm_exception_addr_plusarg_valid) -> (dm_exception_addr == 'h1a11_1000);
+      solve mtvec_addr before nmi_addr;
       solve mimpid_patch before mimpid;
    }
 
@@ -311,9 +311,9 @@ class uvme_cv32e40s_cfg_c extends uvma_core_cntrl_cfg_c;
    extern virtual function void configure_disable_csr_checks();
 
    /**
-    * Temporary override to remove User-mode CSRs that are not implemented yet
+    * Configure disabled CSRs
     */
-   extern virtual function void set_unsupported_csr_mask();
+   extern function void set_unsupported_csr_mask();
 
 endclass : uvme_cv32e40s_cfg_c
 
@@ -346,7 +346,7 @@ function uvme_cv32e40s_cfg_c::new(string name="uvme_cv32e40s_cfg");
    isacov_cfg = uvma_isacov_cfg_c::type_id::create("isacov_cfg");
    clknrst_cfg  = uvma_clknrst_cfg_c::type_id::create("clknrst_cfg");
    interrupt_cfg = uvma_interrupt_cfg_c::type_id::create("interrupt_cfg");
-   debug_cfg = uvma_debug_cfg_c    ::type_id::create("debug_cfg");
+   debug_cfg = uvma_debug_cfg_c::type_id::create("debug_cfg");
    obi_memory_instr_cfg = uvma_obi_memory_cfg_c::type_id::create("obi_memory_instr_cfg");
    obi_memory_data_cfg  = uvma_obi_memory_cfg_c::type_id::create("obi_memory_data_cfg" );
    rvfi_cfg = uvma_rvfi_cfg_c#(ILEN,XLEN)::type_id::create("rvfi_cfg");
@@ -402,7 +402,7 @@ function void uvme_cv32e40s_cfg_c::sample_parameters(uvma_core_cntrl_cntxt_c cnt
       pma_regions[i].main           = e40s_cntxt.core_cntrl_vif.pma_cfg[i].main;
       pma_regions[i].bufferable     = e40s_cntxt.core_cntrl_vif.pma_cfg[i].bufferable;
       pma_regions[i].cacheable      = e40s_cntxt.core_cntrl_vif.pma_cfg[i].cacheable;
-      pma_regions[i].integrity      = e40s_cntxt.core_cntrl_vif.pma_cfg[i].integrity;
+      pma_regions[i].atomic         = e40s_cntxt.core_cntrl_vif.pma_cfg[i].atomic;
    end
 
    // Copy to the pma_configuration
@@ -425,12 +425,6 @@ endfunction : is_csr_check_disabled
 
 function void uvme_cv32e40s_cfg_c::configure_disable_csr_checks();
 
-   // TODO: remove when fixed in ISS
-   disable_csr_check("misa");
-
-   // Need to check
-   disable_csr_check("mcountinhibit");
-
    // Not possible to test on a cycle-by-cycle basis
    disable_csr_check("mip");
 
@@ -447,38 +441,10 @@ function void uvme_cv32e40s_cfg_c::configure_disable_csr_checks();
 endfunction : configure_disable_csr_checks
 
 function void uvme_cv32e40s_cfg_c::set_unsupported_csr_mask();
+  super.set_unsupported_csr_mask();
 
-   // FIXME:STRICHMO:When user mode CSRs are implemented on the e40s then remove this hack
-
-   super.set_unsupported_csr_mask();
-
-   // Now re-invalidate the user mode CSRs since they are not implemented, yet
-   unsupported_csr_mask[uvma_core_cntrl_pkg::USTATUS] = 1;
-   unsupported_csr_mask[uvma_core_cntrl_pkg::UIE] = 1;
-   unsupported_csr_mask[uvma_core_cntrl_pkg::UTVEC] = 1;
-   unsupported_csr_mask[uvma_core_cntrl_pkg::USCRATCH] = 1;
-   unsupported_csr_mask[uvma_core_cntrl_pkg::UEPC] = 1;
-   unsupported_csr_mask[uvma_core_cntrl_pkg::UCAUSE] = 1;
-   unsupported_csr_mask[uvma_core_cntrl_pkg::UTVAL] = 1;
-   unsupported_csr_mask[uvma_core_cntrl_pkg::UIP] = 1;
-   unsupported_csr_mask[uvma_core_cntrl_pkg::CYCLE] = 1;
-   unsupported_csr_mask[uvma_core_cntrl_pkg::TIME] = 1;
-   unsupported_csr_mask[uvma_core_cntrl_pkg::INSTRET] = 1;
-   unsupported_csr_mask[uvma_core_cntrl_pkg::CYCLEH] = 1;
-   unsupported_csr_mask[uvma_core_cntrl_pkg::TIMEH] = 1;
-   unsupported_csr_mask[uvma_core_cntrl_pkg::INSTRETH] = 1;
-   unsupported_csr_mask[uvma_core_cntrl_pkg::SCOUNTEREN] = 1;
-
-   // TODO:ropeders re-evaluate this when 40s is more stable
-   unsupported_csr_mask[uvma_core_cntrl_pkg::TCONTROL] = 1;
-
-   unsupported_csr_mask[uvma_core_cntrl_pkg::MCONTEXT] = 1;
-   unsupported_csr_mask[uvma_core_cntrl_pkg::SCONTEXT] = 1;
-
-   for (int i = 0; i < MAX_NUM_HPMCOUNTERS; i++) begin
-      unsupported_csr_mask[uvma_core_cntrl_pkg::HPMCOUNTER3+i] = 1;
-      unsupported_csr_mask[uvma_core_cntrl_pkg::HPMCOUNTER3H+i] = 1;
-   end
+  unsupported_csr_mask[uvma_core_cntrl_pkg::MCONTEXT] = 1;
+  unsupported_csr_mask[uvma_core_cntrl_pkg::SCONTEXT] = 1;
 
 endfunction : set_unsupported_csr_mask
 

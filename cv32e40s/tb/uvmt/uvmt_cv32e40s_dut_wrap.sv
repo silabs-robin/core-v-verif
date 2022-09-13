@@ -43,10 +43,11 @@ module uvmt_cv32e40s_dut_wrap
   import cv32e40s_pkg::*;
 
   #(// DUT (riscv_core) parameters.
+    parameter NUM_MHPMCOUNTERS    =  1,
+    parameter USE_DEPRECATED_FEATURE_SET = 0,
     parameter cv32e40s_pkg::b_ext_e B_EXT  = cv32e40s_pkg::B_NONE,
     parameter int          PMA_NUM_REGIONS =  0,
-    parameter pma_cfg_t    PMA_CFG[PMA_NUM_REGIONS-1 : 0] = '{default:PMA_R_DEFAULT},
-    parameter int          PMP_NUM_REGIONS = 0,
+    parameter pma_cfg_t PMA_CFG[PMA_NUM_REGIONS-1 : 0] = '{default:PMA_R_DEFAULT},
     // Remaining parameters are used by TB components only
               INSTR_ADDR_WIDTH    =  32,
               INSTR_RDATA_WIDTH   =  32,
@@ -87,6 +88,12 @@ module uvmt_cv32e40s_dut_wrap
     logic                         debug_running;
     logic                         debug_halted;
 
+    // eXtension interface
+    // todo: Connect to TB when implemented.
+    // Included to allow core-v-verif to compile with RTL including
+    // interface definition.
+    if_xif xif();
+
     assign debug_if.clk      = clknrst_if.clk;
     assign debug_if.reset_n  = clknrst_if.reset_n;
 
@@ -97,6 +104,7 @@ module uvmt_cv32e40s_dut_wrap
     assign obi_instr_if_i.auser     = 'b0;
     assign obi_instr_if_i.wuser     = 'b0;
     assign obi_instr_if_i.aid       = 'b0;
+    assign obi_instr_if_i.atop      = 'b0;
     assign obi_instr_if_i.wdata     = 'b0;
     assign obi_instr_if_i.reqpar    = ~obi_instr_if_i.req;
     assign obi_instr_if_i.achk      = 'b0;
@@ -124,7 +132,10 @@ module uvmt_cv32e40s_dut_wrap
 
     // --------------------------------------------
     // Connect to core_cntrl_if
+    assign core_cntrl_if.num_mhpmcounters = NUM_MHPMCOUNTERS;
     assign core_cntrl_if.b_ext = B_EXT;
+
+    `ifndef FORMAL
     initial begin
       core_cntrl_if.pma_cfg = new[PMA_NUM_REGIONS];
       foreach (core_cntrl_if.pma_cfg[i]) begin
@@ -133,17 +144,18 @@ module uvmt_cv32e40s_dut_wrap
         core_cntrl_if.pma_cfg[i].main           = PMA_CFG[i].main;
         core_cntrl_if.pma_cfg[i].bufferable     = PMA_CFG[i].bufferable;
         core_cntrl_if.pma_cfg[i].cacheable      = PMA_CFG[i].cacheable;
-        core_cntrl_if.pma_cfg[i].integrity      = PMA_CFG[i].integrity;
+        core_cntrl_if.pma_cfg[i].atomic         = PMA_CFG[i].atomic;
       end
     end
+    `endif
 
     // --------------------------------------------
     // instantiate the core
     cv32e40s_wrapper #(
+                      .NUM_MHPMCOUNTERS (NUM_MHPMCOUNTERS),
                       .B_EXT            (B_EXT),
                       .PMA_NUM_REGIONS  (PMA_NUM_REGIONS),
-                      .PMA_CFG          (PMA_CFG),
-                      .PMP_NUM_REGIONS  (PMP_NUM_REGIONS)
+                      .PMA_CFG          (PMA_CFG)
                       )
     cv32e40s_wrapper_i
         (
@@ -160,39 +172,38 @@ module uvmt_cv32e40s_dut_wrap
          .dm_exception_addr_i    ( core_cntrl_if.dm_exception_addr),
 
          .instr_req_o            ( obi_instr_if_i.req             ),
-         .instr_reqpar_o         (      /* todo: connect */       ),
          .instr_gnt_i            ( obi_instr_if_i.gnt             ),
-         .instr_gntpar_i         ( 1'b0 /* todo: connect */       ),
          .instr_addr_o           ( obi_instr_if_i.addr            ),
-         .instr_achk_o           (      /* todo: connect */       ),
          .instr_prot_o           ( obi_instr_if_i.prot            ),
          .instr_dbg_o            ( /* obi_instr_if_i.dbg */       ), // todo: Support OBI 1.3
          .instr_memtype_o        ( obi_instr_if_i.memtype         ),
          .instr_rdata_i          ( obi_instr_if_i.rdata           ),
-         .instr_rchk_i           ( '0   /* todo: connect */       ),
          .instr_rvalid_i         ( obi_instr_if_i.rvalid          ),
-         .instr_rvalidpar_i      ( 1'b0 /* todo: connect */       ),
          .instr_err_i            ( obi_instr_if_i.err             ),
 
          .data_req_o             ( obi_data_if_i.req              ),
-         .data_reqpar_o          (      /* todo: connect */       ),
          .data_gnt_i             ( obi_data_if_i.gnt              ),
-         .data_gntpar_i          ( 1'b0 /* todo: connect */       ),
          .data_rvalid_i          ( obi_data_if_i.rvalid           ),
-         .data_rvalidpar_i       ( 1'b0 /* todo: connect */       ),
          .data_we_o              ( obi_data_if_i.we               ),
          .data_be_o              ( obi_data_if_i.be               ),
          .data_addr_o            ( obi_data_if_i.addr             ),
-         .data_achk_o            (      /* todo: connect */       ),
          .data_wdata_o           ( obi_data_if_i.wdata            ),
          .data_prot_o            ( obi_data_if_i.prot             ),
          .data_dbg_o             ( /* obi_data_if_i.dbg */        ), // todo: Support OBI 1.3
          .data_memtype_o         ( obi_data_if_i.memtype          ),
          .data_rdata_i           ( obi_data_if_i.rdata            ),
-         .data_rchk_i            ( '0   /* todo: connect */       ),
+         .data_atop_o            ( obi_data_if_i.atop             ),
          .data_err_i             ( obi_data_if_i.err              ),
+         .data_exokay_i          ( obi_data_if_i.exokay           ),
 
-         .mcycle_o               ( /*todo: connect */             ),
+         .mcycle_o               (      /*todo: connect */        ),
+
+         .xif_compressed_if      ( xif.cpu_compressed             ),
+         .xif_issue_if           ( xif.cpu_issue                  ),
+         .xif_commit_if          ( xif.cpu_commit                 ),
+         .xif_mem_if             ( xif.cpu_mem                    ),
+         .xif_mem_result_if      ( xif.cpu_mem_result             ),
+         .xif_result_if          ( xif.cpu_result                 ),
 
          .irq_i                  ( interrupt_if.irq               ),
 
@@ -209,9 +220,6 @@ module uvmt_cv32e40s_dut_wrap
          .debug_havereset_o      ( debug_havereset                ),
          .debug_running_o        ( debug_running                  ),
          .debug_halted_o         ( debug_halted                   ),
-
-         .alert_major_o          ( alert_major                    ),
-         .alert_minor_o          ( alert_minor                    ),
 
          .fetch_enable_i         ( core_cntrl_if.fetch_en         ),
          .core_sleep_o           ( core_status_if.core_busy       )
