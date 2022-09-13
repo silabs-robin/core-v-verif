@@ -458,6 +458,7 @@ class cv32e40s_asm_program_gen extends corev_asm_program_gen;
 
   // generate NMI handler.
   // will be placed at a fixed address in memory, set in linker file
+  //TODO: verify correct functionality when NMI test capability is ready
   virtual function void gen_nmi_handler_section(int hart);
     string nmi_handler_instr[$];
 

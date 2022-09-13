@@ -898,7 +898,9 @@ module uvmt_cv32e40s_tb;
    end : test_bench_entry_point
 
    assign core_cntrl_if.clk = clknrst_if.clk;
-   assign iss_wrap.cpu.io.nmi_addr = ({dut_wrap.cv32e40s_wrapper_i.rvfi_csr_mtvec_if_0_i.rvfi_csr_rdata[31:2], 2'b00}) + 32'h3c;
+   `ifndef FORMAL // Formal ignores initial blocks, avoids unnecessary warning
+     assign iss_wrap.cpu.io.nmi_addr = ({dut_wrap.cv32e40s_wrapper_i.rvfi_csr_mtvec_if_0_i.rvfi_csr_rdata[31:2], 2'b00}) + 32'h3c;
+   `endif
 
    // Informational print message on loading of OVPSIM ISS to benchmark some elf image loading times
    // OVPSIM runs its initialization at the #1ns timestamp, and should dominate the initial startup time
@@ -953,6 +955,7 @@ module uvmt_cv32e40s_tb;
    /**
     * End-of-test summary printout.
     */
+   `ifndef FORMAL // Formal ignores final blocks, this avoids unnecessary warning
    final begin: end_of_test
       string             summary_string;
       uvm_report_server  rs;
@@ -1012,6 +1015,7 @@ module uvmt_cv32e40s_tb;
          end
       end
    end
+   `endif
 
 endmodule : uvmt_cv32e40s_tb
 `default_nettype wire
