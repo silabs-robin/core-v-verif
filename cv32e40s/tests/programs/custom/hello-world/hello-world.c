@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define EXP_MISA 0x40901104
+#define EXP_MISA 0x40001104
 
 int main(int argc, char *argv[])
 {
@@ -55,8 +55,8 @@ int main(int argc, char *argv[])
     }
 
     /* Check MARCHID CSR: 0x4 is the value assigned by the RISC-V Foundation to CV32E40S */
-    if (marchid_rval != 0x15) {
-      printf("\tERROR: CSR MARCHID reads as 0x%x - should be 0x00000015 for CV32E40S.\n\n", marchid_rval);
+    if (marchid_rval != 0x00000014) {
+      printf("\tERROR: CSR MARCHID reads as 0x%x - should be 0x00000014 for CV32E40S.\n\n", marchid_rval);
       return EXIT_FAILURE;
     }
 

@@ -295,7 +295,7 @@
       description: >
           Encodes all supported ISA extensions
       type: R
-      reset_val: 0x901104
+      reset_val: 0x001104
       msb: 25
       lsb: 0
 - csr: mie
