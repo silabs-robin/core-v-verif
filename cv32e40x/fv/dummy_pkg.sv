@@ -29,7 +29,11 @@ endpackage
 
 
 package uvmt_cv32e40x_pkg;
+  `include "uvme_cv32e40x_constants.sv"
   `include "uvmt_cv32e40x_constants.sv"
+  `include "uvmt_cv32e40x_tdefs.sv"
+
+  import cv32e40x_pkg::*;
 endpackage
 
 
@@ -41,13 +45,7 @@ endpackage
 
 package uvma_rvfi_pkg;
   `include "uvma_rvfi_constants.sv"
-
-  typedef struct packed {
-    logic [10:0] cause;
-    logic        interrupt;
-    logic        exception;
-    logic        intr;
-  } rvfi_intr_t;
+  `include "uvma_rvfi_tdefs.sv"
 endpackage
 
 

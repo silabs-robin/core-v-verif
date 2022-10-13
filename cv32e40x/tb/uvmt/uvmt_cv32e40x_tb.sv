@@ -133,11 +133,15 @@ module uvmt_cv32e40x_tb;
                                                                    .rvfi_rd1_wdata(rvfi_i.rvfi_rd_wdata[uvme_cv32e40x_pkg::XLEN*0+:uvme_cv32e40x_pkg::XLEN]),
                                                                    .rvfi_rd2_addr('0),
                                                                    .rvfi_rd2_wdata('0),
-                                                                   .rvfi_mem_addr(rvfi_i.rvfi_mem_addr[uvme_cv32e40x_pkg::XLEN*0+:uvme_cv32e40x_pkg::XLEN]),
-                                                                   .rvfi_mem_rdata(rvfi_i.rvfi_mem_rdata[uvme_cv32e40x_pkg::XLEN*0+:uvme_cv32e40x_pkg::XLEN]),
-                                                                   .rvfi_mem_rmask(rvfi_i.rvfi_mem_rmask[uvme_cv32e40x_pkg::XLEN/8*0+:uvme_cv32e40x_pkg::XLEN/8]),
-                                                                   .rvfi_mem_wdata(rvfi_i.rvfi_mem_wdata[uvme_cv32e40x_pkg::XLEN*0+:uvme_cv32e40x_pkg::XLEN]),
-                                                                   .rvfi_mem_wmask(rvfi_i.rvfi_mem_wmask[uvme_cv32e40x_pkg::XLEN/8*0+:uvme_cv32e40x_pkg::XLEN/8])
+                                                                   .rvfi_gpr_rdata(rvfi_i.rvfi_gpr_rdata[32*uvme_cv32e40x_pkg::XLEN*0  +:32*uvme_cv32e40x_pkg::XLEN]),
+                                                                   .rvfi_gpr_rmask(rvfi_i.rvfi_gpr_rmask[32*0  +:32]),
+                                                                   .rvfi_gpr_wdata(rvfi_i.rvfi_gpr_wdata[32*uvme_cv32e40x_pkg::XLEN*0  +:32*uvme_cv32e40x_pkg::XLEN]),
+                                                                   .rvfi_gpr_wmask(rvfi_i.rvfi_gpr_wmask[32*0  +:32]),
+                                                                   .rvfi_mem_addr(rvfi_i.rvfi_mem_addr[  uvma_rvfi_pkg::NMEM*uvme_cv32e40x_pkg::XLEN*0    +:uvma_rvfi_pkg::NMEM*uvme_cv32e40x_pkg::XLEN]),
+                                                                   .rvfi_mem_rdata(rvfi_i.rvfi_mem_rdata[uvma_rvfi_pkg::NMEM*uvme_cv32e40x_pkg::XLEN*0    +:uvma_rvfi_pkg::NMEM*uvme_cv32e40x_pkg::XLEN]),
+                                                                   .rvfi_mem_rmask(rvfi_i.rvfi_mem_rmask[uvma_rvfi_pkg::NMEM*uvme_cv32e40x_pkg::XLEN/8*0  +:uvma_rvfi_pkg::NMEM*uvme_cv32e40x_pkg::XLEN/8]),
+                                                                   .rvfi_mem_wdata(rvfi_i.rvfi_mem_wdata[uvma_rvfi_pkg::NMEM*uvme_cv32e40x_pkg::XLEN*0    +:uvma_rvfi_pkg::NMEM*uvme_cv32e40x_pkg::XLEN]),
+                                                                   .rvfi_mem_wmask(rvfi_i.rvfi_mem_wmask[uvma_rvfi_pkg::NMEM*uvme_cv32e40x_pkg::XLEN/8*0  +:uvma_rvfi_pkg::NMEM*uvme_cv32e40x_pkg::XLEN/8])
                                                                    );
 
   // RVFI CSR binds
@@ -338,7 +342,7 @@ module uvmt_cv32e40x_tb;
 
   // Bind in verification modules to the design
   bind cv32e40x_core
-    uvmt_cv32e40x_interrupt_assert interrupt_assert_i(
+    uvmt_cv32e40x_interrupt_assert  interrupt_assert_i (
       .mcause_n     ({cs_registers_i.mcause_n.irq, cs_registers_i.mcause_n.exception_code[4:0]}),
       .mip          (cs_registers_i.mip_rdata),
       .mie_q        (cs_registers_i.mie_q),
@@ -352,7 +356,7 @@ module uvmt_cv32e40x_tb;
 
       .ex_stage_instr_valid (ex_stage_i.id_ex_pipe_i.instr_valid),
 
-      .wb_stage_instr_valid_i    (wb_stage_i.instr_valid),
+      .wb_stage_instr_valid_i    (wb_stage_i.ex_wb_pipe_i.instr_valid),
       .wb_stage_instr_rdata_i    (wb_stage_i.ex_wb_pipe_i.instr.bus_resp.rdata),
       .wb_stage_instr_err_i      (wb_stage_i.ex_wb_pipe_i.instr.bus_resp.err),
       .wb_stage_instr_mpu_status (wb_stage_i.ex_wb_pipe_i.instr.mpu_status),
@@ -365,6 +369,7 @@ module uvmt_cv32e40x_tb;
 
       .*
     );
+
 
   // Fence.i assertions
 
@@ -392,7 +397,9 @@ module uvmt_cv32e40x_tb;
   // Core integration assertions
 
   bind cv32e40x_wrapper
-    uvmt_cv32e40x_integration_assert  integration_assert_i (.*);
+    uvmt_cv32e40x_integration_assert  integration_assert_i (
+      .*
+    );
 
 
   // Debug assertion and coverage interface
@@ -471,15 +478,17 @@ module uvmt_cv32e40x_tb;
 
       .rvfi_valid             (rvfi_i.rvfi_valid),
       .rvfi_insn              (rvfi_i.rvfi_insn),
-      .rvfi_intr              (rvfi_i.rvfi_intr.intr),
+      .rvfi_intr              (rvfi_i.rvfi_intr),
       .rvfi_dbg               (rvfi_i.rvfi_dbg),
       .rvfi_dbg_mode          (rvfi_i.rvfi_dbg_mode),
       .rvfi_pc_wdata          (rvfi_i.rvfi_pc_wdata),
       .rvfi_pc_rdata          (rvfi_i.rvfi_pc_rdata),
       .rvfi_csr_dpc_rdata     (rvfi_i.rvfi_csr_dpc_rdata),
-      .rvfi_csr_mepc_rdata    (rvfi_i.rvfi_csr_mepc_rdata),
       .rvfi_csr_mepc_wdata    (rvfi_i.rvfi_csr_mepc_wdata),
       .rvfi_csr_mepc_wmask    (rvfi_i.rvfi_csr_mepc_wmask),
+      .rvfi_csr_mepc_rdata    (rvfi_i.rvfi_csr_mepc_rdata),
+
+
 
       .is_wfi                 (),
       .in_wfi                 (),
@@ -494,13 +503,33 @@ module uvmt_cv32e40x_tb;
       .*
     );
 
+  bind cv32e40x_wrapper
+    uvmt_cv32e40x_support_logic_if support_logic_if (
+
+      .ctrl_fsm_o_i(core_i.controller_i.controller_fsm_i.ctrl_fsm_o),
+      .data_bus_req_i(obi_data_if_i.req),
+      .data_bus_gnt_i(obi_data_if_i.gnt),
+
+      .*
+    );
+
+
+    bind cv32e40x_wrapper uvmt_cv32e40x_support_logic u_support_logic(.rvfi(rvfi_instr_if_0_i),
+                                                                      .support_if(support_logic_if.write)
+                                                                      );
+
     bind cv32e40x_wrapper uvmt_cv32e40x_debug_assert u_debug_assert(.cov_assert_if(debug_cov_assert_if));
+
+    bind cv32e40x_wrapper uvmt_cv32e40x_zc_assert u_zc_assert(.rvfi(rvfi_instr_if_0_i),
+                                                              .support_if(support_logic_if.read)
+                                                              );
+
 
     //uvmt_cv32e40x_rvvi_handcar u_rvvi_handcar();
     /**
     * ISS WRAPPER instance:
     */
-    `ifndef FORMAL // Formal ignores initial blocks, avoids unnecessary warning
+    `ifndef FORMAL  // Formal ignores initial blocks, avoids unnecessary warning
       uvmt_cv32e40x_iss_wrap  #(
                                 .ID (0),
                                 .ROM_START_ADDR('h0),
@@ -512,7 +541,6 @@ module uvmt_cv32e40x_tb;
                                  );
 
       assign clknrst_if_iss.reset_n = clknrst_if.reset_n;
-      assign iss_wrap.cpu.io.nmi_addr = ({dut_wrap.cv32e40x_wrapper_i.rvfi_csr_mtvec_if_0_i.rvfi_csr_rdata[31:2], 2'b00}) + 32'h3c;
     `endif
 
    /**
@@ -671,6 +699,7 @@ module uvmt_cv32e40x_tb;
      uvm_config_db#(virtual uvme_cv32e40x_core_cntrl_if     )::set(.cntxt(null), .inst_name("*"), .field_name("core_cntrl_vif"),      .value(core_cntrl_if)     );
      uvm_config_db#(virtual uvmt_cv32e40x_core_status_if    )::set(.cntxt(null), .inst_name("*"), .field_name("core_status_vif"),     .value(core_status_if)    );
      uvm_config_db#(virtual uvmt_cv32e40x_debug_cov_assert_if)::set(.cntxt(null), .inst_name("*.env"), .field_name("debug_cov_vif"),.value(dut_wrap.cv32e40x_wrapper_i.debug_cov_assert_if));
+     uvm_config_db#(virtual uvmt_cv32e40x_support_logic_if)::set(.cntxt(null), .inst_name("*.env"), .field_name("support_logic_vif"),.value(dut_wrap.cv32e40x_wrapper_i.support_logic_if));
 
      // Make the DUT Wrapper Virtual Peripheral's status outputs available to the base_test
      uvm_config_db#(bit      )::set(.cntxt(null), .inst_name("*"), .field_name("tp"),     .value(1'b0)        );
@@ -692,12 +721,14 @@ module uvmt_cv32e40x_tb;
    `endif
 
    assign core_cntrl_if.clk = clknrst_if.clk;
+  `ifndef  FORMAL
+     assign iss_wrap.cpu.io.nmi_addr = ({dut_wrap.cv32e40x_wrapper_i.rvfi_csr_mtvec_if_0_i.rvfi_csr_rdata[31:2], 2'b00}) + 32'h3c;
+  `endif
 
    // Informational print message on loading of OVPSIM ISS to benchmark some elf image loading times
    // OVPSIM runs its initialization at the #1ns timestamp, and should dominate the initial startup time
    longint start_ovpsim_init_time;
    longint end_ovpsim_init_time;
-
    `ifndef FORMAL // Formal ignores initial blocks, avoids unnecessary warning
    initial begin
       if (!$test$plusargs("DISABLE_OVPSIM")) begin
@@ -709,7 +740,7 @@ module uvmt_cv32e40x_tb;
         `uvm_info("OVPSIM", $sformatf("Initialization time: %0d seconds", end_ovpsim_init_time - start_ovpsim_init_time), UVM_LOW)
       end
     end
-    `endif
+   `endif
 
    //TODO verify these are correct with regards to isacov function
    `ifndef FORMAL // events ignored for formal - this avoids unnecessary warning
