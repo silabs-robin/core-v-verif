@@ -18,7 +18,6 @@
 module uvmt_cv32e40x_interrupt_assert
   import uvm_pkg::*;
   import cv32e40x_pkg::*;
-  import uvmt_cv32e40x_pkg::*;
   (
 
     input clk,   // Gated clock
@@ -41,19 +40,20 @@ module uvmt_cv32e40x_interrupt_assert
     input [5:0]  mcause_n, // mcause_n[5]: interrupt, mcause_n[4]: vector
     input [31:0] mip,     // machine interrupt pending
     input [31:0] mie_q,   // machine interrupt enable
-    input        mstatus_mie, // machine mode interrupt enable
+    input        mstatus_mie,  // machine mode interrupt enable
+    input        mstatus_tw,   // "timeout wait"
     input [1:0]  mtvec_mode_q, // machine mode interrupt vector mode
 
-    // Instruction fetch stage
+    // IF stage
     input        if_stage_instr_req_o,
     input        if_stage_instr_rvalid_i, // Instruction word is valid
     input [31:0] if_stage_instr_rdata_i, // Instruction word data
     input [ 1:0] alignbuf_outstanding, // Alignment buffer's number of outstanding transactions
 
-    // Instruction EX stage
+    // EX stage
     input        ex_stage_instr_valid, // EX pipeline stage has valid input
 
-    // Instruction WB stage (determines executed instructions)
+    // WB stage (determines executed instructions)
     input              wb_stage_instr_valid_i,    // instruction word is valid
     input [31:0]       wb_stage_instr_rdata_i,    // Instruction word data
     input              wb_stage_instr_err_i,      // OBI "err"
@@ -61,6 +61,9 @@ module uvmt_cv32e40x_interrupt_assert
 
     // Load-store unit status
     input              lsu_busy,
+
+    // Privilege
+    input privlvl_t    priv_lvl,
 
     // Determine whether to cancel instruction if branch taken
     input branch_taken_ex,
@@ -102,6 +105,8 @@ module uvmt_cv32e40x_interrupt_assert
 
   reg[31:0] expected_irq;
   logic     expected_irq_ack;
+  wire      is_mmode_mstatusmie = (priv_lvl == PRIV_LVL_M) && mstatus_mie;
+  wire      is_umode_miemip     = (priv_lvl == PRIV_LVL_U) && (mie_q & mip);
 
   reg[31:0] last_instr_rdata;
 
@@ -134,7 +139,7 @@ module uvmt_cv32e40x_interrupt_assert
 
   // irq_id_o is never a reserved irq
   property p_irq_id_o_not_reserved;
-    irq_ack_o |-> VALID_IRQ_MASK[irq_id_o[4:0]];
+    irq_ack_o |-> VALID_IRQ_MASK[irq_id_o];
   endproperty
   a_irq_id_o_not_reserved: assert property(p_irq_id_o_not_reserved)
     else
@@ -143,21 +148,22 @@ module uvmt_cv32e40x_interrupt_assert
 
   // irq_id_o is never a disabled irq
   property p_irq_id_o_mie_enabled;
-    irq_ack_o |-> mie_q[irq_id_o[4:0]];
+    irq_ack_o |-> mie_q[irq_id_o];
   endproperty
   a_irq_id_o_mie_enabled: assert property(p_irq_id_o_mie_enabled)
     else
       `uvm_error(info_tag,
                  $sformatf("irq_id_o output is 0x%0x which is disabled in MIE: 0x%08x", irq_id_o, mie_q));
 
-  // irq_ack_o cannot be asserted if mstatus_mie is deasserted
-  property p_irq_id_o_mstatus_mie_enabled;
-    irq_ack_o |-> mstatus_mie;
-  endproperty
-  a_irq_id_o_mstatus_mie_enabled: assert property(p_irq_id_o_mstatus_mie_enabled)
-    else
-      `uvm_error(info_tag,
-                 $sformatf("int_id_o output is 0x%0x but MSTATUS.MIE is disabled", irq_id_o));
+  // irq_ack_o cannot be asserted without mstatus_mie or U-mode
+  a_irq_id_o_mstatus_mie_enabled: assert property (
+    irq_ack_o
+    |->
+    is_mmode_mstatusmie ^ is_umode_miemip
+  ) else `uvm_error(info_tag, $sformatf("interrupt handler taken but unexpected mie"));
+  cov_irq_id_o_mstatus_mstatusmie: cover property (irq_ack_o #-# is_mmode_mstatusmie);
+  cov_irq_id_o_mstatus_miemip:     cover property (irq_ack_o #-# is_umode_miemip);
+
 
   // ---------------------------------------------------------------------------
   // Interrupt CSR checks
@@ -266,7 +272,7 @@ module uvmt_cv32e40x_interrupt_assert
       expected_irq <= next_irq_q;
   end
 
-  assign expected_irq_ack = next_irq_valid & mstatus_mie;
+  assign expected_irq_ack = next_irq_valid && (is_mmode_mstatusmie || is_umode_miemip);
 
   // Check expected interrupt wins
   property p_irq_arb;
@@ -282,9 +288,7 @@ module uvmt_cv32e40x_interrupt_assert
     irq_ack_o |-> expected_irq_ack;
   endproperty
   a_irq_expected: assert property(p_irq_expected)
-    else
-      `uvm_error(info_tag,
-                 $sformatf("Did not expect interrupt ack: %0d", irq_id_o))
+    else `uvm_error(info_tag, $sformatf("Did not expect interrupt ack: %0d", irq_id_o))
 
   // ---------------------------------------------------------------------------
   // The infamous "first" flag (kludge for $past() handling of t=0 values)
@@ -306,9 +310,8 @@ module uvmt_cv32e40x_interrupt_assert
   endproperty
   a_mip_irq_i: assert property(p_mip_irq_i)
     else
-      `uvm_error(info_tag, $sformatf(
-        "MIP of 0x%08x does not follow flopped irq_i input: 0x%08x", mip, $past(irq_i)
-      ));
+      `uvm_error(info_tag,
+                 $sformatf("MIP of 0x%08x does not follow flopped irq_i input: 0x%08x", mip, $past(irq_i)));
 
   // mip should not be reserved
   property p_mip_not_reserved;
@@ -338,11 +341,12 @@ module uvmt_cv32e40x_interrupt_assert
                   (wb_stage_instr_rdata_i == WFI_INSTR_DATA) &&
                   !branch_taken_ex                           &&
                   !wb_stage_instr_err_i                      &&
+                  !((priv_lvl == PRIV_LVL_U) && mstatus_tw)  &&
                   (wb_stage_instr_mpu_status == MPU_OK);
-
-  assign is_wfe = wb_stage_instr_valid_i                     &&
+    assign is_wfe = wb_stage_instr_valid_i                   &&
                   (wb_stage_instr_rdata_i == WFE_INSTR_DATA) &&
                   !branch_taken_ex                           &&
+                  !((priv_lvl == PRIV_LVL_U) && mstatus_tw)  &&
                   !wb_stage_instr_err_i                      &&
                   (wb_stage_instr_mpu_status == MPU_OK);
   always @(posedge clk_i or negedge rst_ni) begin
@@ -352,7 +356,7 @@ module uvmt_cv32e40x_interrupt_assert
     else begin
       if ((is_wfi || is_wfe) && !in_wfi_wfe) //
         in_wfi_wfe <= 1'b1;
-      else if (|pending_enabled_irq || |pending_enabled_irq_q || debug_req_i)
+      else if (|pending_enabled_irq || debug_req_i)
         in_wfi_wfe <= 1'b0;
     end
   end

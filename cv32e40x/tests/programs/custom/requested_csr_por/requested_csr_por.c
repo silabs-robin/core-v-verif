@@ -30,8 +30,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
-#define EXP_MISA 0x40001104
+#define EXP_MISA 0x40901104
 
 int main(int argc, char *argv[])
 {
@@ -304,8 +305,8 @@ int main(int argc, char *argv[])
     ++err_cnt;
   }
 
-  if (marchid_rval != 0x14) {
-    printf("ERROR: CSR MARCHID not 0x14!\n\n");
+  if (marchid_rval != 0x15) {
+    printf("ERROR: CSR MARCHID not 0x15!\n\n");
     ++err_cnt;
   }
 
@@ -315,14 +316,14 @@ int main(int argc, char *argv[])
   }
 
   if (mhartid_rval != 0x0) {
-    printf("ERROR: CSR MHARTID not equal to mhartid_i!\n\n");
+    printf("ERROR: CSR MHARTID not equal to hart_id_i!\n\n");
     ++err_cnt;
   }
 
   __asm__ volatile("csrr %0, 0x320" : "=r"(mcountinhibit_rval));
 
-  if (mcountinhibit_rval != 0xD) {
-    printf("ERROR: CSR MCOUNTINHIBIT not 0xD!\n\n");
+  if (mcountinhibit_rval != 0x5) {
+    printf("ERROR: CSR MCOUNTINHIBIT not 0x5!\n\n");
     ++err_cnt;
   }
 

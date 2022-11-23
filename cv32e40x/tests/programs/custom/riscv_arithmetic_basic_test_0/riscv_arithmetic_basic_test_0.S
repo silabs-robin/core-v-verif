@@ -11961,7 +11961,6 @@ mmode_intr_vector_15:
                   j mmode_intr_handler
                   1: j test_done
 
-# CV32E40X trap-handler base address is always aligned to 128 bytes
 .align 7
 mtvec_handler:
                   .option norvc;

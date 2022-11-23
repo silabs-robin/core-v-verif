@@ -32,8 +32,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
-#define EXP_MISA 0x40001104
+#define EXP_MISA 0x40901104
 
 int main(int argc, char *argv[])
 {
@@ -441,8 +442,8 @@ int main(int argc, char *argv[])
     ++err_cnt;
   }
 
-  if (marchid_rval != 0x14) {
-    printf("ERROR: CSR MARCHID not 0x14!\n\n");
+  if (marchid_rval != 0x15) {
+    printf("ERROR: CSR MARCHID not 0x15!\n\n");
     ++err_cnt;
   }
 

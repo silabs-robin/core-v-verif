@@ -40,6 +40,7 @@ class uvme_cv32e40x_cfg_c extends uvma_core_cntrl_cfg_c;
    rand uvma_isacov_cfg_c           isacov_cfg;
    rand uvma_clknrst_cfg_c          clknrst_cfg;
    rand uvma_interrupt_cfg_c        interrupt_cfg;
+   rand uvma_clic_cfg_c             clic_cfg;
    rand uvma_debug_cfg_c            debug_cfg;
    rand uvma_obi_memory_cfg_c       obi_memory_instr_cfg;
    rand uvma_obi_memory_cfg_c       obi_memory_data_cfg;
@@ -64,6 +65,7 @@ class uvme_cv32e40x_cfg_c extends uvma_core_cntrl_cfg_c;
       `uvm_field_object(isacov_cfg           , UVM_DEFAULT)
       `uvm_field_object(clknrst_cfg          , UVM_DEFAULT)
       `uvm_field_object(interrupt_cfg        , UVM_DEFAULT)
+      `uvm_field_object(clic_cfg             , UVM_DEFAULT)
       `uvm_field_object(debug_cfg            , UVM_DEFAULT)
       `uvm_field_object(obi_memory_instr_cfg , UVM_DEFAULT)
       `uvm_field_object(obi_memory_data_cfg  , UVM_DEFAULT)
@@ -87,16 +89,21 @@ class uvme_cv32e40x_cfg_c extends uvma_core_cntrl_cfg_c;
       xlen == uvma_core_cntrl_pkg::MXL_32;
       ilen == 32;
 
-      ext_i_supported        == 1;
-      ext_c_supported        == 1;
-      ext_m_supported        == 1;
-      ext_zifencei_supported == 1;
-      ext_zicsr_supported    == 1;
-      ext_a_supported        == 0;
-      ext_p_supported        == 0;
-      ext_v_supported        == 0;
-      ext_f_supported        == 0;
-      ext_d_supported        == 0;
+      ext_i_supported         == 1;
+      ext_c_supported         == 1;
+      ext_m_supported         == 1;
+      ext_zifencei_supported  == 1;
+      ext_zicsr_supported     == 1;
+      ext_a_supported         == 0;
+      ext_p_supported         == 0;
+      ext_v_supported         == 0;
+      ext_f_supported         == 0;
+      ext_d_supported         == 0;
+      ext_zca_supported       == 1;
+      ext_zcb_supported       == 0;
+      ext_zcmb_supported      == 0;
+      ext_zcmp_supported      == 0;
+      ext_zcmt_supported      == 0;
 
       if (b_ext == cv32e40x_pkg::B_NONE) {
          ext_zba_supported == 0;
@@ -114,16 +121,16 @@ class uvme_cv32e40x_cfg_c extends uvma_core_cntrl_cfg_c;
          ext_zbc_supported == 1;
          ext_zbs_supported == 1;
       }
-      ext_zbe_supported == 0;
-      ext_zbf_supported == 0;
-      ext_zbm_supported == 0;
-      ext_zbp_supported == 0;
-      ext_zbr_supported == 0;
-      ext_zbt_supported == 0;
+      ext_zbe_supported    == 0;
+      ext_zbf_supported    == 0;
+      ext_zbm_supported    == 0;
+      ext_zbp_supported    == 0;
+      ext_zbr_supported    == 0;
+      ext_zbt_supported    == 0;
       ext_nonstd_supported == 1;
 
       mode_s_supported == 0;
-      mode_u_supported == 0;
+      mode_u_supported == 1;
       pmp_supported == 0;
       debug_supported == 1;
 
@@ -144,21 +151,21 @@ class uvme_cv32e40x_cfg_c extends uvma_core_cntrl_cfg_c;
 
    constraint default_cv32e40x_boot_cons {
       (!mhartid_plusarg_valid)           -> (mhartid           == 'h0000_0000);
-      (!mimpid_patch_plusarg_valid)             -> (mimpid_patch      == 'h0        );
-      (!mimpid_plusarg_valid)                   -> (mimpid            == {12'b0, MIMPID_MAJOR, 4'b0, MIMPID_MINOR, 4'b0, mimpid_patch[3:0]});
+      (!mimpid_patch_plusarg_valid)      -> (mimpid_patch      == 'h0        );
+      (!mimpid_plusarg_valid)            -> (mimpid            == {12'b0, MIMPID_MAJOR, 4'b0, MIMPID_MINOR, 4'b0, mimpid_patch[3:0]});
       (!boot_addr_plusarg_valid)         -> (boot_addr         == 'h0000_0080);
       (!mtvec_addr_plusarg_valid)        -> (mtvec_addr        == 'h0000_0000);
-      (!nmi_addr_plusarg_valid)                 -> (nmi_addr          == mtvec_addr + 'h3C /* 4*15 */ );
+      (!nmi_addr_plusarg_valid)          -> (nmi_addr          == 'h0010_0000);
       (!dm_halt_addr_plusarg_valid)      -> (dm_halt_addr      == 'h1a11_0800);
       (!dm_exception_addr_plusarg_valid) -> (dm_exception_addr == 'h1a11_1000);
-      solve mtvec_addr before nmi_addr;
       solve mimpid_patch before mimpid;
    }
 
    constraint agent_cfg_cons {
       if (enabled) {
          clknrst_cfg.enabled           == 1;
-         interrupt_cfg.enabled         == 1;
+         interrupt_cfg.enabled         == basic_interrupt_enable;
+         clic_cfg.enabled              == clic_interrupt_enable;
          debug_cfg.enabled             == 1;
          rvfi_cfg.enabled              == 1;
          obi_memory_instr_cfg.enabled  == 1;
@@ -166,14 +173,24 @@ class uvme_cv32e40x_cfg_c extends uvma_core_cntrl_cfg_c;
          fencei_cfg.enabled            == 1;
       }
 
+      clic_cfg.is_mmode_irq_only         == 1;
+
+      obi_memory_data_cfg.clic_interrupts_enabled   == clic_interrupt_enable;
+      obi_memory_instr_cfg.clic_interrupts_enabled  == clic_interrupt_enable;
+      obi_memory_data_cfg.basic_interrupts_enabled  == basic_interrupt_enable;
+      obi_memory_instr_cfg.basic_interrupts_enabled == basic_interrupt_enable;
+
       obi_memory_instr_cfg.version       == UVMA_OBI_MEMORY_VERSION_1P2;
       obi_memory_instr_cfg.drv_mode      == UVMA_OBI_MEMORY_MODE_SLV;
+      obi_memory_instr_cfg.chk_scheme    == UVMA_OBI_MEMORY_CHK_CV32E40X;
       obi_memory_instr_cfg.write_enabled == 0;
       obi_memory_instr_cfg.addr_width    == XLEN;
       obi_memory_instr_cfg.data_width    == XLEN;
       obi_memory_instr_cfg.id_width      == 0;
-      obi_memory_instr_cfg.achk_width    == 0;
-      obi_memory_instr_cfg.rchk_width    == 0;
+      obi_memory_instr_cfg.achk_width    == 12;
+      obi_memory_instr_cfg.rchk_width    == 5;
+      //obi_memory_instr_cfg.achk_width    == ENV_PARAM_INSTR_ACHK_WIDTH;
+      //obi_memory_instr_cfg.rchk_width    == ENV_PARAM_INSTR_RCHK_WIDTH;
       obi_memory_instr_cfg.auser_width   == 0;
       obi_memory_instr_cfg.ruser_width   == 0;
       obi_memory_instr_cfg.wuser_width   == 0;
@@ -182,11 +199,14 @@ class uvme_cv32e40x_cfg_c extends uvma_core_cntrl_cfg_c;
 
       obi_memory_data_cfg.version        == UVMA_OBI_MEMORY_VERSION_1P2;
       obi_memory_data_cfg.drv_mode       == UVMA_OBI_MEMORY_MODE_SLV;
+      obi_memory_data_cfg.chk_scheme     == UVMA_OBI_MEMORY_CHK_CV32E40X;
       obi_memory_data_cfg.addr_width     == XLEN;
       obi_memory_data_cfg.data_width     == XLEN;
       obi_memory_data_cfg.id_width       == 0;
-      obi_memory_data_cfg.achk_width     == 0;
-      obi_memory_data_cfg.rchk_width     == 0;
+      obi_memory_data_cfg.achk_width     == 12;
+      obi_memory_data_cfg.rchk_width     == 5;
+      //obi_memory_data_cfg.achk_width     == ENV_PARAM_DATA_ACHK_WIDTH;
+      //obi_memory_data_cfg.rchk_width     == ENV_PARAM_DATA_ACHK_WIDTH;
       obi_memory_data_cfg.auser_width    == 0;
       obi_memory_data_cfg.ruser_width    == 0;
       obi_memory_data_cfg.wuser_width    == 0;
@@ -213,6 +233,7 @@ class uvme_cv32e40x_cfg_c extends uvma_core_cntrl_cfg_c;
          isacov_cfg.is_active           == UVM_PASSIVE;
          clknrst_cfg.is_active          == UVM_ACTIVE;
          interrupt_cfg.is_active        == UVM_ACTIVE;
+         clic_cfg.is_active             == UVM_ACTIVE;
          debug_cfg.is_active            == UVM_ACTIVE;
          obi_memory_instr_cfg.is_active == UVM_ACTIVE;
          obi_memory_data_cfg.is_active  == UVM_ACTIVE;
@@ -225,6 +246,7 @@ class uvme_cv32e40x_cfg_c extends uvma_core_cntrl_cfg_c;
          clknrst_cfg.trn_log_enabled           == 0;
          debug_cfg.trn_log_enabled             == 0;
          interrupt_cfg.trn_log_enabled         == 0;
+         clic_cfg.trn_log_enabled              == 0;
          isacov_cfg.trn_log_enabled            == 0;
          obi_memory_data_cfg.trn_log_enabled   == 1;
          obi_memory_instr_cfg.trn_log_enabled  == 1;
@@ -233,6 +255,7 @@ class uvme_cv32e40x_cfg_c extends uvma_core_cntrl_cfg_c;
          clknrst_cfg.trn_log_enabled           == 0;
          debug_cfg.trn_log_enabled             == 0;
          interrupt_cfg.trn_log_enabled         == 0;
+         clic_cfg.trn_log_enabled              == 0;
          isacov_cfg.trn_log_enabled            == 0;
          obi_memory_data_cfg.trn_log_enabled   == 0;
          obi_memory_instr_cfg.trn_log_enabled  == 0;
@@ -308,9 +331,9 @@ class uvme_cv32e40x_cfg_c extends uvma_core_cntrl_cfg_c;
    extern virtual function void configure_disable_csr_checks();
 
    /**
-    * Configure disabled CSRs
+    * Temporary override to remove User-mode CSRs that are not implemented yet
     */
-   extern function void set_unsupported_csr_mask();
+   extern virtual function void set_unsupported_csr_mask();
 
 endclass : uvme_cv32e40x_cfg_c
 
@@ -340,10 +363,16 @@ function uvme_cv32e40x_cfg_c::new(string name="uvme_cv32e40x_cfg");
    if ($test$plusargs("obi_memory_data_one_shot_err"))
       obi_memory_data_one_shot_err_enabled = 1;
 
-   isacov_cfg = uvma_isacov_cfg_c::type_id::create("isacov_cfg");
-   clknrst_cfg  = uvma_clknrst_cfg_c::type_id::create("clknrst_cfg");
-   interrupt_cfg = uvma_interrupt_cfg_c::type_id::create("interrupt_cfg");
-   debug_cfg = uvma_debug_cfg_c::type_id::create("debug_cfg");
+   if ($test$plusargs("enable_clic")) begin
+     clic_interrupt_enable  = 1;
+     basic_interrupt_enable = 0;
+   end
+
+   isacov_cfg           = uvma_isacov_cfg_c::type_id::create("isacov_cfg");
+   clknrst_cfg          = uvma_clknrst_cfg_c::type_id::create("clknrst_cfg");
+   interrupt_cfg        = uvma_interrupt_cfg_c::type_id::create("interrupt_cfg");
+   clic_cfg             = uvma_clic_cfg_c::type_id::create("clic_cfg");
+   debug_cfg            = uvma_debug_cfg_c::type_id::create("debug_cfg");
    obi_memory_instr_cfg = uvma_obi_memory_cfg_c::type_id::create("obi_memory_instr_cfg");
    obi_memory_data_cfg  = uvma_obi_memory_cfg_c::type_id::create("obi_memory_data_cfg" );
    rvfi_cfg             = uvma_rvfi_cfg_c#(ILEN,XLEN)::type_id::create("rvfi_cfg");
@@ -395,7 +424,7 @@ function void uvme_cv32e40x_cfg_c::sample_parameters(uvma_core_cntrl_cntxt_c cnt
       pma_regions[i].main           = e40x_cntxt.core_cntrl_vif.pma_cfg[i].main;
       pma_regions[i].bufferable     = e40x_cntxt.core_cntrl_vif.pma_cfg[i].bufferable;
       pma_regions[i].cacheable      = e40x_cntxt.core_cntrl_vif.pma_cfg[i].cacheable;
-      pma_regions[i].atomic         = e40x_cntxt.core_cntrl_vif.pma_cfg[i].atomic;
+      pma_regions[i].integrity      = e40x_cntxt.core_cntrl_vif.pma_cfg[i].integrity;
    end
 
    // Copy to the pma_configuration
@@ -418,10 +447,11 @@ endfunction : is_csr_check_disabled
 
 function void uvme_cv32e40x_cfg_c::configure_disable_csr_checks();
 
-   // TODO:silabs-robin  Are these deprecated with the new iss infrastructure?
-
    // TODO: remove when fixed in ISS
    disable_csr_check("misa");
+
+   // Need to check
+   disable_csr_check("mcountinhibit");
 
    // Not possible to test on a cycle-by-cycle basis
    disable_csr_check("mip");
@@ -439,10 +469,38 @@ function void uvme_cv32e40x_cfg_c::configure_disable_csr_checks();
 endfunction : configure_disable_csr_checks
 
 function void uvme_cv32e40x_cfg_c::set_unsupported_csr_mask();
-  super.set_unsupported_csr_mask();
 
-  unsupported_csr_mask[uvma_core_cntrl_pkg::MCONTEXT] = 1;
-  unsupported_csr_mask[uvma_core_cntrl_pkg::SCONTEXT] = 1;
+   // FIXME:STRICHMO:When user mode CSRs are implemented on the e40x then remove this hack
+
+   super.set_unsupported_csr_mask();
+
+   // Now re-invalidate the user mode CSRs since they are not implemented, yet
+   unsupported_csr_mask[uvma_core_cntrl_pkg::USTATUS] = 1;
+   unsupported_csr_mask[uvma_core_cntrl_pkg::UIE] = 1;
+   unsupported_csr_mask[uvma_core_cntrl_pkg::UTVEC] = 1;
+   unsupported_csr_mask[uvma_core_cntrl_pkg::USCRATCH] = 1;
+   unsupported_csr_mask[uvma_core_cntrl_pkg::UEPC] = 1;
+   unsupported_csr_mask[uvma_core_cntrl_pkg::UCAUSE] = 1;
+   unsupported_csr_mask[uvma_core_cntrl_pkg::UTVAL] = 1;
+   unsupported_csr_mask[uvma_core_cntrl_pkg::UIP] = 1;
+   unsupported_csr_mask[uvma_core_cntrl_pkg::CYCLE] = 1;
+   unsupported_csr_mask[uvma_core_cntrl_pkg::TIME] = 1;
+   unsupported_csr_mask[uvma_core_cntrl_pkg::INSTRET] = 1;
+   unsupported_csr_mask[uvma_core_cntrl_pkg::CYCLEH] = 1;
+   unsupported_csr_mask[uvma_core_cntrl_pkg::TIMEH] = 1;
+   unsupported_csr_mask[uvma_core_cntrl_pkg::INSTRETH] = 1;
+   unsupported_csr_mask[uvma_core_cntrl_pkg::SCOUNTEREN] = 1;
+
+   // TODO:ropeders re-evaluate this when 40x is more stable
+   unsupported_csr_mask[uvma_core_cntrl_pkg::TCONTROL] = 1;
+
+   unsupported_csr_mask[uvma_core_cntrl_pkg::MCONTEXT] = 1;
+   unsupported_csr_mask[uvma_core_cntrl_pkg::SCONTEXT] = 1;
+
+   for (int i = 0; i < MAX_NUM_HPMCOUNTERS; i++) begin
+      unsupported_csr_mask[uvma_core_cntrl_pkg::HPMCOUNTER3+i] = 1;
+      unsupported_csr_mask[uvma_core_cntrl_pkg::HPMCOUNTER3H+i] = 1;
+   end
 
 endfunction : set_unsupported_csr_mask
 

@@ -25,9 +25,10 @@
 */
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 
-#define EXP_MISA 0x40801104
+#define EXP_MISA 0x40901104
 
 int main(int argc, char *argv[])
 {
@@ -51,12 +52,12 @@ int main(int argc, char *argv[])
     /* Check MISA CSR: if its zero, it might not be implemented at all */
     if (misa_rval != EXP_MISA) {
       printf("\tERROR: CSR MISA reads as 0x%x - should be 0x%x for this release of CV32E40X!\n\n", misa_rval, EXP_MISA);
-      //return EXIT_FAILURE;
+      return EXIT_FAILURE;
     }
 
     /* Check MARCHID CSR: 0x4 is the value assigned by the RISC-V Foundation to CV32E40X */
-    if (marchid_rval != 0x00000014) {
-      printf("\tERROR: CSR MARCHID reads as 0x%x - should be 0x00000014 for CV32E40X.\n\n", marchid_rval);
+    if (marchid_rval != 0x15) {
+      printf("\tERROR: CSR MARCHID reads as 0x%x - should be 0x00000015 for CV32E40X.\n\n", marchid_rval);
       return EXIT_FAILURE;
     }
 
