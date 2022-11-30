@@ -24,18 +24,20 @@ module uvmt_cv32e40s_rvfi_assert
   input  clk_i,
   input  rst_ni,
 
-  input             rvfi_valid,
-  input [ 4:0]      rvfi_rs1_addr,
-  input [ 4:0]      rvfi_rs2_addr,
-  input [31:0]      rvfi_rs1_rdata,
-  input [31:0]      rvfi_rs2_rdata,
-  input [ 2:0]      rvfi_dbg,
-  input [31:0]      rvfi_csr_dcsr_rdata,
-  input rvfi_trap_t rvfi_trap,
-  input rvfi_intr_t rvfi_intr,
-  input [31:0]      rvfi_csr_mcause_wdata,
-  input [31:0]      rvfi_csr_mcause_wmask,
-  input             rvfi_dbg_mode
+  input              rvfi_valid,
+  input [ 2:0]       rvfi_dbg,
+  input [31:0]       rvfi_csr_dcsr_rdata,
+  input [31:0]       rvfi_csr_mcause_wdata,
+  input [31:0]       rvfi_csr_mcause_wmask,
+  input [31:0]       rvfi_pc_rdata,
+  input [31:0]       rvfi_pc_wdata,
+  input [31:0]       rvfi_rs1_rdata,
+  input [31:0]       rvfi_rs2_rdata,
+  input [ 4:0]       rvfi_rs1_addr,
+  input [ 4:0]       rvfi_rs2_addr,
+  input              rvfi_dbg_mode,
+  input rvfi_intr_t  rvfi_intr,
+  input rvfi_trap_t  rvfi_trap
 );
 
   default clocking @(posedge clk_i); endclocking
@@ -119,5 +121,25 @@ module uvmt_cv32e40s_rvfi_assert
     |->
     rvfi_trap.debug_cause
   ) else `uvm_error(info_tag, "rvfi_trap debugs must have a cause");
+
+
+  // "pc_wdata" can be trusted
+
+  property p_pc;
+    logic [31:0]  pc;
+
+    rvfi_valid  ##0
+    (1, pc=rvfi_pc_wdata)
+
+    |=>
+
+    (rvfi_valid [->1])  ##0
+    ((rvfi_pc_rdata == pc) || rvfi_intr)
+    ;
+  endproperty : p_pc
+
+  a_pc: assert property (
+    p_pc
+  ) else `uvm_error(info_tag, "TODO");
 
 endmodule : uvmt_cv32e40s_rvfi_assert
