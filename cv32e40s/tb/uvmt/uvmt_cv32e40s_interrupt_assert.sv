@@ -15,61 +15,75 @@
 // limitations under the License.
 //
 
+`default_nettype  none
+
 module uvmt_cv32e40s_interrupt_assert
   import uvm_pkg::*;
   import cv32e40s_pkg::*;
   (
 
-    input clk,   // Gated clock
-    input clk_i, // Free-running core clock
-    input rst_ni,
+    input wire  clk,   // Gated clock
+    input wire  clk_i, // Free-running core clock
+    input wire  rst_ni,
 
-    // Core inputs
-    input        fetch_enable_i, // external core fetch enable
+    // Core input wires
+    input wire         fetch_enable_i, // external core fetch enable
 
     // External interrupt interface
-    input [31:0] irq_i,
-    input        irq_ack_o,
-    input [9:0]  irq_id_o,
+    input wire [31:0]  irq_i,
+    input wire         irq_ack_o,
+    input wire [9:0]   irq_id_o,
 
     // External debug req (for WFI modeling)
-    input        debug_req_i,
-    input        debug_mode_q,
+    input wire         debug_req_i,
+    input wire         debug_mode_q,
 
     // CSR Interface
-    input [5:0]  mcause_n, // mcause_n[5]: interrupt, mcause_n[4]: vector
-    input [31:0] mip,     // machine interrupt pending
-    input [31:0] mie_q,   // machine interrupt enable
-    input        mstatus_mie,  // machine mode interrupt enable
-    input        mstatus_tw,   // "timeout wait"
-    input [1:0]  mtvec_mode_q, // machine mode interrupt vector mode
+    input wire [5:0]   mcause_n, // mcause_n[5]: interrupt, mcause_n[4]: vector
+    input wire [31:0]  mip,     // machine interrupt pending
+    input wire [31:0]  mie_q,   // machine interrupt enable
+    input wire         mstatus_mie,  // machine mode interrupt enable
+    input wire         mstatus_tw,   // "timeout wait"
+    input wire [1:0]   mtvec_mode_q, // machine mode interrupt vector mode
 
     // IF stage
-    input        if_stage_instr_req_o,
-    input        if_stage_instr_rvalid_i, // Instruction word is valid
-    input [31:0] if_stage_instr_rdata_i, // Instruction word data
-    input [ 1:0] alignbuf_outstanding, // Alignment buffer's number of outstanding transactions
+    input wire         if_stage_instr_req_o,
+    input wire         if_stage_instr_rvalid_i, // Instruction word is valid
+    input wire [31:0]  if_stage_instr_rdata_i, // Instruction word data
+    input wire [ 1:0]  alignbuf_outstanding, // Alignment buffer's number of outstanding transactions
 
     // EX stage
-    input        ex_stage_instr_valid, // EX pipeline stage has valid input
+    input wire         ex_stage_instr_valid, // EX pipeline stage has valid input
 
     // WB stage (determines executed instructions)
-    input              wb_stage_instr_valid_i,    // instruction word is valid
-    input [31:0]       wb_stage_instr_rdata_i,    // Instruction word data
-    input              wb_stage_instr_err_i,      // OBI "err"
-    input mpu_status_e wb_stage_instr_mpu_status, // MPU read/write errors
+    input wire               wb_stage_instr_valid_i,    // instruction word is valid
+    input wire [31:0]        wb_stage_instr_rdata_i,    // Instruction word data
+    input wire               wb_stage_instr_err_i,      // OBI "err"
+    input wire mpu_status_e  wb_stage_instr_mpu_status, // MPU read/write errors
+    input wire               wb_valid,
+    input wire               wb_instr_valid,
+    input wire               wb_sys_en,
+    input wire               wb_sys_wfi_insn,
+    input wire               wb_sys_wfe_insn,
 
     // Load-store unit status
-    input              lsu_busy,
+    input wire               lsu_busy,
 
     // Privilege
-    input privlvl_t    priv_lvl,
+    input wire privlvl_t     priv_lvl,
 
     // Determine whether to cancel instruction if branch taken
-    input branch_taken_ex,
+    input wire               branch_taken_ex,
 
     // WFI Interface
-    input core_sleep_o
+    input wire               core_sleep_o,
+
+    // RVFI
+    uvma_rvfi_instr_if       rvfi,
+
+    //
+    input wire               pending_nmi,
+    input wire               nmi_allowed
   );
 
   // ---------------------------------------------------------------------------
@@ -334,36 +348,57 @@ module uvmt_cv32e40s_interrupt_assert
     end
   end
 
+
   // ---------------------------------------------------------------------------
   // WFI Checks
   // ---------------------------------------------------------------------------
+
+  logic  is_wfi;
   assign is_wfi = wb_stage_instr_valid_i                     &&
                   (wb_stage_instr_rdata_i == WFI_INSTR_DATA) &&
                   !branch_taken_ex                           &&
                   !wb_stage_instr_err_i                      &&
                   !((priv_lvl == PRIV_LVL_U) && mstatus_tw)  &&
                   (wb_stage_instr_mpu_status == MPU_OK);
-    assign is_wfe = wb_stage_instr_valid_i                   &&
+
+  logic  is_wfe;
+  assign is_wfe = wb_stage_instr_valid_i                     &&
                   (wb_stage_instr_rdata_i == WFE_INSTR_DATA) &&
                   !branch_taken_ex                           &&
                   !((priv_lvl == PRIV_LVL_U) && mstatus_tw)  &&
                   !wb_stage_instr_err_i                      &&
                   (wb_stage_instr_mpu_status == MPU_OK);
+
+  logic  is_wfi_wfe_in_wb;
+  assign is_wfi_wfe_in_wb = wb_instr_valid && wb_sys_en && (wb_sys_wfi_insn || wb_sys_wfe_insn);
+
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       in_wfi_wfe <= 1'b0;
     end
     else begin
-      if ((is_wfi || is_wfe) && !in_wfi_wfe) //
+      if (is_wfi || is_wfe) begin
         in_wfi_wfe <= 1'b1;
-      else if (|pending_enabled_irq || debug_req_i)
+      end
+
+      if (!pipeline_ready_for_wfi) begin
         in_wfi_wfe <= 1'b0;
+      end
     end
   end
 
-  assign pipeline_ready_for_wfi = (alignbuf_outstanding == 0) && !lsu_busy;
+  logic  pipeline_ready_for_wfi;
+  assign pipeline_ready_for_wfi = (
+    (alignbuf_outstanding == 0)   &&
+    !lsu_busy                     &&
+    !(|pending_enabled_irq)       &&
+    !debug_req_i                  &&
+    !(pending_nmi && nmi_allowed)
+  );
+
 
   // WFI assertion will assert core_sleep_o (in WFI_TO_CORE_SLEEP_LATENCY cycles after wb, given ideal conditions)
+
   property p_wfi_assert_core_sleep_o;
     !in_wfi_wfe
     ##1 (in_wfi_wfe && !(|pending_enabled_irq) && !debug_mode_q && !debug_req_i)[*(WFI_TO_CORE_SLEEP_LATENCY-1)]
@@ -374,13 +409,17 @@ module uvmt_cv32e40s_interrupt_assert
     |->
     core_sleep_o;
   endproperty
+
   a_wfi_assert_core_sleep_o: assert property(p_wfi_assert_core_sleep_o)
     else
       `uvm_error(info_tag,
                  $sformatf("Assertion of core_sleep_o did not occur within %0d clocks", WFI_TO_CORE_SLEEP_LATENCY))
+
   c_wfi_assert_core_sleep_o: cover property(p_wfi_assert_core_sleep_o);
 
+
   // WFI assertion will assert core_sleep_o (after required conditions are met)
+
   property p_wfi_assert_core_sleep_o_cond;
     !in_wfi_wfe
     ##1 (
@@ -390,11 +429,51 @@ module uvmt_cv32e40s_interrupt_assert
     |->
     core_sleep_o;
   endproperty
+
   a_wfi_assert_core_sleep_o_cond: assert property(p_wfi_assert_core_sleep_o_cond)
     else
       `uvm_error(info_tag,
                  "Assertion of core_sleep_o did not occur upon its prerequisite conditions")
+
   c_wfi_assert_core_sleep_o_cond: cover property(p_wfi_assert_core_sleep_o_cond);
+
+
+  // core_sleep_o leads to rvfi_valid
+
+  property  p_wfi_assert_to_rvfi;
+    core_sleep_o
+    |=>
+    (rvfi.rvfi_valid [->1])  ##0
+    (rvfi.rvfi_insn  inside  {WFI_INSTR_DATA, WFE_INSTR_DATA})
+    ;
+  endproperty : p_wfi_assert_to_rvfi
+
+  a_wfi_assert_to_rvfi: assert property (p_wfi_assert_to_rvfi)
+    else `uvm_error(info_tag, "TODO");
+
+
+  // core_sleep_o must come, or WFI/WFE must "nope" out of it
+
+  property  p_wfi_assert_come_coresleepo;
+    (
+      $rose(is_wfi_wfe_in_wb && pipeline_ready_for_wfi)  ##0
+      ((is_wfi_wfe_in_wb && pipeline_ready_for_wfi) [*(1 + WFI_TO_CORE_SLEEP_LATENCY) : $])
+    )
+
+    implies
+
+    !wb_valid throughout (
+      ($rose(core_sleep_o) [->1])      // core_sleep_o must come...
+      or
+      ($fell(is_wfi_wfe_in_wb) [->1])  // ...or WFI/WFE must "nope" out of it
+    )
+    // TODO:silabs-robin  Idea: packed struct like pmp reasons, cover several onehots
+    ;
+  endproperty : p_wfi_assert_come_coresleepo
+
+  a_wfi_assert_come_coresleepo: assert property (p_wfi_assert_come_coresleepo)
+    else `uvm_error(info_tag, "TODO");
+
 
   // core_sleep_o deassertion in wfi should be followed by WFI deassertion
   property p_core_sleep_deassert;
@@ -449,3 +528,5 @@ module uvmt_cv32e40s_interrupt_assert
   endgenerate
 
 endmodule : uvmt_cv32e40s_interrupt_assert
+
+`default_nettype  wire

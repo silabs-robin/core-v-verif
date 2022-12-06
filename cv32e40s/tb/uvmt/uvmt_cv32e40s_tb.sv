@@ -458,12 +458,21 @@ module uvmt_cv32e40s_tb;
       .wb_stage_instr_rdata_i    (wb_stage_i.ex_wb_pipe_i.instr.bus_resp.rdata),
       .wb_stage_instr_err_i      (wb_stage_i.ex_wb_pipe_i.instr.bus_resp.err),
       .wb_stage_instr_mpu_status (wb_stage_i.ex_wb_pipe_i.instr.mpu_status),
+      .wb_instr_valid            (ex_wb_pipe.instr_valid),
+      .wb_sys_en                 (ex_wb_pipe.sys_en),
+      .wb_sys_wfi_insn           (core_i.ex_wb_pipe.sys_wfi_insn),
+      .wb_sys_wfe_insn           (core_i.ex_wb_pipe.sys_wfe_insn),
 
       .branch_taken_ex (controller_i.controller_fsm_i.branch_taken_ex),
       .debug_mode_q    (controller_i.controller_fsm_i.debug_mode_q),
 
       .irq_ack_o (core_i.irq_ack),
       .irq_id_o  (core_i.irq_id),
+
+      .rvfi (dut_wrap.cv32e40s_wrapper_i.rvfi_instr_if_0_i),
+
+      .pending_nmi (controller_i.controller_fsm_i.pending_nmi),
+      .nmi_allowed (controller_i.controller_fsm_i.nmi_allowed),
 
       .*
     );
