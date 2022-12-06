@@ -441,6 +441,24 @@ module uvmt_cv32e40s_interrupt_assert
     !pipeline_ready_for_wfi |-> !core_sleep_o
   ) else `uvm_error(info_tag, "TODO");
 
+  a_wfi_assert_no_entry: assert property (
+    (|alignbuf_outstanding || |lsu_busy)
+    |=>
+    !core_sleep_o
+  ) else `uvm_error(info_tag, "TODO");
+
+  a_wfi_assert_irq_exit: assert property (
+    pending_enabled_irq
+    |->
+    !core_sleep_o
+  ) else `uvm_error(info_tag, "TODO");
+
+  a_wfi_assert_debug_exit: assert property (
+    debug_req_i
+    |->
+    !core_sleep_o
+  ) else `uvm_error(info_tag, "TODO");
+
 
   // WFI assertion will assert core_sleep_o (after required conditions are met)
 
