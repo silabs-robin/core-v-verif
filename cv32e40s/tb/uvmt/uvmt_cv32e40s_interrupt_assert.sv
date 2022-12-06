@@ -375,8 +375,7 @@ module uvmt_cv32e40s_interrupt_assert
   always @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       in_wfi_wfe <= 1'b0;
-    end
-    else begin
+    end else begin
       if (is_wfi || is_wfe) begin
         in_wfi_wfe <= 1'b1;
       end
@@ -400,10 +399,10 @@ module uvmt_cv32e40s_interrupt_assert
   // WFI assertion will assert core_sleep_o (in WFI_TO_CORE_SLEEP_LATENCY cycles after wb, given ideal conditions)
 
   property p_wfi_assert_core_sleep_o;
-    !in_wfi_wfe
-    ##1 (in_wfi_wfe && !(|pending_enabled_irq) && !debug_mode_q && !debug_req_i)[*(WFI_TO_CORE_SLEEP_LATENCY-1)]
+    !is_wfi_wfe_in_wb
+    ##1 (is_wfi_wfe_in_wb && !(|pending_enabled_irq) && !debug_mode_q && !debug_req_i)[*WFI_TO_CORE_SLEEP_LATENCY]
     ##1 (
-      (in_wfi_wfe && !(|pending_enabled_irq) && !debug_mode_q && !debug_req_i)
+      (is_wfi_wfe_in_wb && !(|pending_enabled_irq) && !debug_mode_q && !debug_req_i)
         throughout $past(pipeline_ready_for_wfi)[->1]
       )
     |->
@@ -416,6 +415,31 @@ module uvmt_cv32e40s_interrupt_assert
                  $sformatf("Assertion of core_sleep_o did not occur within %0d clocks", WFI_TO_CORE_SLEEP_LATENCY))
 
   c_wfi_assert_core_sleep_o: cover property(p_wfi_assert_core_sleep_o);
+
+  c_wfi_assert_core_sleep_long: cover property(
+    p_wfi_assert_core_sleep_o
+    and
+    (
+      ((is_wfi_wfe_in_wb == 0) && (pipeline_ready_for_wfi == 0) && (core_sleep_o == 0)) [*1:$]  ##1
+      ((is_wfi_wfe_in_wb == 1) && (pipeline_ready_for_wfi == 0) && (core_sleep_o == 0)) [*1:$]  ##1
+      ((is_wfi_wfe_in_wb == 1) && (pipeline_ready_for_wfi == 1) && (core_sleep_o == 0)) [*1:$]  ##1
+      ((is_wfi_wfe_in_wb == 1) && (pipeline_ready_for_wfi == 1) && (core_sleep_o == 1)) [*1:$]
+    )
+  );
+
+
+  // TODO:silabs-robin
+
+  a_wfi_assert_core_in_wfi_wfe: assert property (
+    pipeline_ready_for_wfi  &&
+    $past(is_wfi_wfe_in_wb, WFI_TO_CORE_SLEEP_LATENCY)
+    |->
+    (in_wfi_wfe == core_sleep_o)
+  ) else `uvm_error(info_tag, "TODO");
+
+  a_wfi_assert_core_not_ready: assert property (
+    !pipeline_ready_for_wfi |-> !core_sleep_o
+  ) else `uvm_error(info_tag, "TODO");
 
 
   // WFI assertion will assert core_sleep_o (after required conditions are met)
