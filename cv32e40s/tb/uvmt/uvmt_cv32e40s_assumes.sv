@@ -29,30 +29,32 @@ module  uvmt_cv32e40s_assumes (
 );
 
 
+  localparam logic [31:0]  MAX_OBI_STALLS = 8;
+
+
   default clocking @(posedge clk_i); endclocking
   default disable iff !rst_ni;
 
 
-  localparam logic [31:0]  MAX_OBI_STALLS = 8;
-  property p_TODO;
-    // TODO take args "aph/rph..."
-    logic [31:0]  occurances;
+  property p_obi_limit_stalling (addr_ph_occurances, rsp_ph_occurances);
+    logic [31:0]  new_count;
 
-    $changed(sup.instr_bus_addr_ph_occurances)  ##0
-    (1, occurances=sup.instr_bus_addr_ph_occurances)
-
+    ($changed(addr_ph_occurances), new_count = addr_ph_occurances)
     |=>
+    ##[0:MAX_OBI_STALLS]  (rsp_ph_occurances == new_count);
+  endproperty : p_obi_limit_stalling
 
-    ##[0:MAX_OBI_STALLS]
-    (sup.instr_bus_rsp_ph_occurances == occurances)
-    ;
-  endproperty : p_TODO
+  `ifdef OBI_STALL_RESTRICTIONS
+    a_obi_limit_instr_stalling: assert property (
+      p_obi_limit_stalling (sup.instr_bus_addr_ph_occurances, sup.instr_bus_rsp_ph_occurances)
+    );
 
-  a_TODO: assert property (
-    p_TODO
-  );
-  // TODO:silabs-robin assume/restrict, not assert
-  // TODO:silabs "data_bus" too
+    a_obi_limit_data_stalling: assert property (
+      p_obi_limit_stalling (sup.data_bus_addr_ph_occurances, sup.data_bus_rsp_ph_occurances)
+    );
+
+    // TODO:silabs-robin assume/restrict, not assert
+  `endif
 
 
 endmodule : uvmt_cv32e40s_assumes

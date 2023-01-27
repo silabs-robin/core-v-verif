@@ -45,14 +45,8 @@ module uvmt_cv32e40s_sl_obi_phases_monitor
   logic rsp_ph_valid;
   logic obi_rready;
 
-  logic [31:0] addr_ph_lapse_comb;
-  logic [31:0] addr_ph_lapse_ff;
-  logic        addr_ph_occured;
-
   logic [31:0] addr_ph_occurances_ff;
   logic [31:0] rsp_ph_occurances_ff;
-  logic [31:0] addr_ph_occurances_comb;
-  logic [31:0] rsp_ph_occurances_comb;
 
 
   assign obi_rready = 1'b1;  // Note: This is an assumption
@@ -103,29 +97,8 @@ module uvmt_cv32e40s_sl_obi_phases_monitor
     end
   end
 
-  assign  addr_ph_lapse_comb = addr_ph_valid ? 0 : addr_ph_lapse_ff;
-  always_ff @(posedge clk_i or negedge rst_ni) begin
-    if (!rst_ni) begin
-      addr_ph_lapse_ff <= 0;
-    end else if (addr_ph_valid) begin
-      addr_ph_lapse_ff <= 1;
-    end else if (addr_ph_occured) begin
-      addr_ph_lapse_ff <= addr_ph_lapse_ff + 1;
-    end
-  end
-
-  always_latch  begin
-    if (!rst_ni) begin
-      addr_ph_occured = 0;
-    end else if (addr_ph_valid) begin
-      addr_ph_occured = 1;
-    end
-  end
-
-  assign  addr_ph_occurances_comb = addr_ph_occurances_ff + addr_ph_valid;
-  assign  rsp_ph_occurances_comb  = rsp_ph_occurances_ff  + rsp_ph_valid;
-  assign  addr_ph_occurances = addr_ph_occurances_comb;
-  assign  rsp_ph_occurances  = rsp_ph_occurances_comb;
+  assign  addr_ph_occurances = addr_ph_occurances_ff + addr_ph_valid;
+  assign  rsp_ph_occurances  = rsp_ph_occurances_ff  + rsp_ph_valid;
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       addr_ph_occurances_ff <= 0;
@@ -140,11 +113,5 @@ module uvmt_cv32e40s_sl_obi_phases_monitor
       end
     end
   end
-
-  localparam int  MAX_OBI_STALLS = 8;
-  property p_obi_max_stalls;
-    obi_req && obi_gnt |-> !obi_rvalid [*0:MAX_OBI_STALLS] ##1 obi_rvalid;
-  endproperty : p_obi_max_stalls
-  asu_TODO: restrict property (p_obi_max_stalls);
 
 endmodule : uvmt_cv32e40s_sl_obi_phases_monitor
