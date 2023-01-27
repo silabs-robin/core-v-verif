@@ -902,25 +902,26 @@ module uvmt_cv32e40s_tb;
       .core_i_if_stage_i_pc_check_i_ctrl_fsm_i_pc_mux                                                                   (core_i.if_stage_i.pc_check_i.ctrl_fsm_i.pc_mux)
 
     );
-   // Xsecure assertions
+
+
+  // Xsecure assertions
 
   bind cv32e40s_wrapper
     uvmt_cv32e40s_xsecure_assert #(
-	.SECURE	(cv32e40s_pkg::SECURE),
-  .SMCLIC (SMCLIC),
-  .PMP_NUM_REGIONS (PMP_NUM_REGIONS),
-  .MTVT_ADDR_WIDTH   (core_i.MTVT_ADDR_WIDTH),
-  .CSR_MINTTHRESH_MASK (core_i.cs_registers_i.CSR_MINTTHRESH_MASK),
-  .PMP_ADDR_WIDTH (core_i.cs_registers_i.PMP_ADDR_WIDTH)
-
-    ) xsecure_assert_i 	(
+      .SECURE (cv32e40s_pkg::SECURE),
+      .SMCLIC (SMCLIC),
+      .PMP_NUM_REGIONS (PMP_NUM_REGIONS),
+      .MTVT_ADDR_WIDTH   (core_i.MTVT_ADDR_WIDTH),
+      .CSR_MINTTHRESH_MASK (core_i.cs_registers_i.CSR_MINTTHRESH_MASK),
+      .PMP_ADDR_WIDTH (core_i.cs_registers_i.PMP_ADDR_WIDTH)
+    ) xsecure_assert_i (
       .clk_i      (clknrst_if.clk),
       .rst_ni     (clknrst_if.reset_n),
-
-    	.xsecure_if	(xsecure_if),
-	    .rvfi_if	  (rvfi_instr_if_0_i),
+      .xsecure_if (xsecure_if),
+      .rvfi_if    (rvfi_instr_if_0_i),
       .support_if (support_logic_for_assert_coverage_modules_if.slave_mp)
     );
+
 
   // Debug assertion and coverage interface
 
@@ -1110,6 +1111,14 @@ module uvmt_cv32e40s_tb;
     bind cv32e40s_wrapper uvmt_cv32e40s_zc_assert u_zc_assert(.rvfi(rvfi_instr_if_0_i),
                                                               .support_if(support_logic_for_assert_coverage_modules_if.slave_mp)
                                                               );
+
+    // Assumes
+
+    bind  cv32e40s_wrapper
+      uvmt_cv32e40s_assumes  assumes_i (
+        .sup (support_logic_for_assert_coverage_modules_if.slave_mp),
+        .*
+      );
 
 
     //uvmt_cv32e40s_rvvi_handcar u_rvvi_handcar();

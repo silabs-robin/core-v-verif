@@ -87,9 +87,12 @@ module uvmt_cv32e40s_support_logic
     .obi_gnt (in_support_if.data_bus_gnt),
     .obi_rvalid (in_support_if.data_bus_rvalid),
 
-    .addr_ph_cont (out_support_if.data_bus_addr_ph_cont),
-    .resp_ph_cont (out_support_if.data_bus_resp_ph_cont),
-    .v_addr_ph_cnt (out_support_if.data_bus_v_addr_ph_cnt)
+    .addr_ph_cont  (out_support_if.data_bus_addr_ph_cont),
+    .resp_ph_cont  (out_support_if.data_bus_resp_ph_cont),
+    .v_addr_ph_cnt (out_support_if.data_bus_v_addr_ph_cnt),
+
+    .addr_ph_occurances (out_support_if.data_bus_addr_ph_occurances),
+    .rsp_ph_occurances  (out_support_if.data_bus_rsp_ph_occurances)
   );
 
   //obi instr bus:
@@ -103,7 +106,10 @@ module uvmt_cv32e40s_support_logic
 
     .addr_ph_cont (out_support_if.instr_bus_addr_ph_cont),
     .resp_ph_cont (out_support_if.instr_bus_resp_ph_cont),
-    .v_addr_ph_cnt (out_support_if.instr_bus_v_addr_ph_cnt)
+    .v_addr_ph_cnt (out_support_if.instr_bus_v_addr_ph_cnt),
+
+    .addr_ph_occurances (out_support_if.instr_bus_addr_ph_occurances),
+    .rsp_ph_occurances  (out_support_if.instr_bus_rsp_ph_occurances)
   );
 
   //obi protocol between alignmentbuffer (ab) and instructoin (i) interface (i) mpu (m) (=> abiim)

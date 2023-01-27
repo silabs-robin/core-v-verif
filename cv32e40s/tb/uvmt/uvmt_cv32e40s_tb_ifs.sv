@@ -567,6 +567,12 @@ interface uvmt_cv32e40s_support_logic_for_assert_coverage_modules_if;
    integer lml_bus_v_addr_ph_cnt;
    integer lrfodi_bus_v_addr_ph_cnt;
 
+   // OBI Phase Counting
+   logic [31:0]  data_bus_addr_ph_occurances;
+   logic [31:0]  data_bus_rsp_ph_occurances;
+   logic [31:0]  instr_bus_addr_ph_occurances;
+   logic [31:0]  instr_bus_rsp_ph_occurances;
+
    //Signals stating whether the request for the current response had the attribute value or not
    logic req_was_store;
    logic instr_req_had_integrity;
@@ -575,26 +581,31 @@ interface uvmt_cv32e40s_support_logic_for_assert_coverage_modules_if;
    logic gntpar_error_in_response_data;
 
    modport master_mp (
-      output req_after_exception,
+      output
+         req_after_exception,
          data_bus_addr_ph_cont,
-	      data_bus_resp_ph_cont,
-	      data_bus_v_addr_ph_cnt,
+         data_bus_resp_ph_cont,
+         data_bus_v_addr_ph_cnt,
+         data_bus_addr_ph_occurances,
+         data_bus_rsp_ph_occurances,
 
          instr_bus_addr_ph_cont,
-	      instr_bus_resp_ph_cont,
-	      instr_bus_v_addr_ph_cnt,
+         instr_bus_resp_ph_cont,
+         instr_bus_v_addr_ph_cnt,
+         instr_bus_addr_ph_occurances,
+         instr_bus_rsp_ph_occurances,
 
          abiim_bus_addr_ph_cont,
-	      abiim_bus_resp_ph_cont,
-	      abiim_bus_v_addr_ph_cnt,
+         abiim_bus_resp_ph_cont,
+         abiim_bus_v_addr_ph_cnt,
 
          lml_bus_addr_ph_cont,
-	      lml_bus_resp_ph_cont,
-	      lml_bus_v_addr_ph_cnt,
+         lml_bus_resp_ph_cont,
+         lml_bus_v_addr_ph_cnt,
 
          lrfodi_bus_addr_ph_cont,
-	      lrfodi_bus_resp_ph_cont,
-	      lrfodi_bus_v_addr_ph_cnt,
+         lrfodi_bus_resp_ph_cont,
+         lrfodi_bus_v_addr_ph_cnt,
 
          req_was_store,
          instr_req_had_integrity,
@@ -604,26 +615,32 @@ interface uvmt_cv32e40s_support_logic_for_assert_coverage_modules_if;
    );
 
    modport slave_mp (
-      input req_after_exception,
+      input
+         req_after_exception,
+
          data_bus_addr_ph_cont,
-	      data_bus_resp_ph_cont,
-	      data_bus_v_addr_ph_cnt,
+         data_bus_resp_ph_cont,
+         data_bus_v_addr_ph_cnt,
+         data_bus_addr_ph_occurances,
+         data_bus_rsp_ph_occurances,
 
          instr_bus_addr_ph_cont,
-	      instr_bus_resp_ph_cont,
-	      instr_bus_v_addr_ph_cnt,
+         instr_bus_resp_ph_cont,
+         instr_bus_v_addr_ph_cnt,
+         instr_bus_addr_ph_occurances,
+         instr_bus_rsp_ph_occurances,
 
          abiim_bus_addr_ph_cont,
-	      abiim_bus_resp_ph_cont,
-	      abiim_bus_v_addr_ph_cnt,
+         abiim_bus_resp_ph_cont,
+         abiim_bus_v_addr_ph_cnt,
 
          lml_bus_addr_ph_cont,
-	      lml_bus_resp_ph_cont,
-	      lml_bus_v_addr_ph_cnt,
+         lml_bus_resp_ph_cont,
+         lml_bus_v_addr_ph_cnt,
 
          lrfodi_bus_addr_ph_cont,
-	      lrfodi_bus_resp_ph_cont,
-	      lrfodi_bus_v_addr_ph_cnt,
+         lrfodi_bus_resp_ph_cont,
+         lrfodi_bus_v_addr_ph_cnt,
 
          req_was_store,
          instr_req_had_integrity,
