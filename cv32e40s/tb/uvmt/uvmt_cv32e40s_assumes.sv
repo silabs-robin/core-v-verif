@@ -36,25 +36,107 @@ module  uvmt_cv32e40s_assumes (
   default disable iff !rst_ni;
 
 
-  property p_obi_limit_stalling (addr_ph_occurances, rsp_ph_occurances);
+  property p_obi_stall_limit (addr_ph_occurances, rsp_ph_occurances);
     logic [31:0]  new_count;
 
     ($changed(addr_ph_occurances), new_count = addr_ph_occurances)
     |=>
     ##[0:MAX_OBI_STALLS]  (rsp_ph_occurances == new_count);
-  endproperty : p_obi_limit_stalling
+
+    // This property cannot be assumed because of lacking tool support
+  endproperty : p_obi_stall_limit
 
   `ifdef OBI_STALL_RESTRICTIONS
+    // TODO:silabs-robin ifdef used everywhere applicable
     a_obi_limit_instr_stalling: assert property (
-      p_obi_limit_stalling (sup.instr_bus_addr_ph_occurances, sup.instr_bus_rsp_ph_occurances)
+      p_obi_stall_limit (
+        sup.instr_bus_addr_ph_occurances,
+        sup.instr_bus_rsp_ph_occurances
+      )
     );
 
     a_obi_limit_data_stalling: assert property (
-      p_obi_limit_stalling (sup.data_bus_addr_ph_occurances, sup.data_bus_rsp_ph_occurances)
+      p_obi_stall_limit (
+        sup.data_bus_addr_ph_occurances,
+        sup.data_bus_rsp_ph_occurances
+      )
     );
-
-    // TODO:silabs-robin assume/restrict, not assert
   `endif
+
+  asu_obi_limit_instr_stalling: assume property (
+    (sup.instr_bus_addr_ph_occurances == 1)
+    |=>
+    ##[0:MAX_OBI_STALLS]  (sup.instr_bus_rsp_ph_occurances == 1)
+  );
+
+/*
+  asu_obi_limit_instr_stalling_2: assume property (
+    (sup.instr_bus_addr_ph_occurances == 2)
+    |=>
+    ##[0:MAX_OBI_STALLS]  (sup.instr_bus_rsp_ph_occurances == 2)
+  );
+*/
+
+  logic [31:0]  instr_bus_outstanding;
+  assign  instr_bus_outstanding =
+    sup.instr_bus_addr_ph_occurances - sup.instr_bus_rsp_ph_occurances;
+
+  logic [31:0] lapse_pointer_cur;
+    // TODO:silabs-robin clog2 width. Note: non-2^N bug-danger
+  assign  lapse_pointer_cur =
+    $changed(sup.instr_bus_addr_ph_occurances)
+      ? (lapse_pointer_prv + 1)
+      : lapse_pointer_prv;
+    // TODO:silabs-robin  is same as "addr_ph_occurances", re-use.
+
+  logic [31:0] lapse_pointer_prv;
+    // TODO:silabs-robin clog2 width. Note: non-2^N bug-danger
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      lapse_pointer_prv = 0;
+    end else begin
+      lapse_pointer_prv = lapse_pointer_cur;
+    end
+  end
+
+  logic [31:0] lapse_counter [MAX_OBI_STALLS];
+  always_ff @(posedge clk_i) begin
+    for (int i = 0; i < MAX_OBI_STALLS; i++) begin
+      if (i < instr_bus_outstanding) begin
+        int index = (lapse_pointer_cur - i) % MAX_OBI_STALLS;
+        lapse_counter[index] <= lapse_counter[index] + 1;
+      end
+    end
+
+    if ($changed(sup.instr_bus_addr_ph_occurances)) begin
+      lapse_counter[lapse_pointer_cur] <= 1;
+    end
+
+    for (int i = 0; i < MAX_OBI_STALLS; i++) begin
+      if (!rst_ni) begin
+        lapse_counter[i] <= 0;
+      end
+    end
+
+    // TODO:silabs-robin need to reset counters after events?
+  end
+
+  for (genvar i = 0; i < MAX_OBI_STALLS; i++) begin
+    a_limit_instr_2_max: assume property (
+      !(
+        instr_bus_outstanding  &&
+        (lapse_counter[i] > MAX_OBI_STALLS)  &&
+        !$changed(sup.instr_bus_rsp_ph_occurances)
+      )
+    );
+    // Note: Has only been tested for a limit number of MAX_OBI_STALLS
+  end
+
+/*
+  asu_obi_limit_instr_stalling: assume property (
+    1
+  );
+*/
 
 
 endmodule : uvmt_cv32e40s_assumes
