@@ -187,8 +187,8 @@ module uvmt_cv32e40s_iss_wrap
    )
 
    (
-    input realtime                clk_period,
-    uvma_clknrst_if               clknrst_if
+    input var realtime  clk_period,
+    uvma_clknrst_if     clknrst_if
    );
 endmodule
 

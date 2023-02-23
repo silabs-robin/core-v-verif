@@ -18,8 +18,6 @@
 
 
 proc cvfv_rerun {} {
-  onerror  {exit 1}
-
   puts  "cvfv: compiling verilog"
   vlog  -mfcu  -f fv.flist
 

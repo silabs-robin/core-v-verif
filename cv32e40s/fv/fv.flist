@@ -19,6 +19,9 @@
 # limitations under the License.
 
 
+-svinputport=net
+
+
 ./uvm_pkg.sv
 ./defines.sv
 
