@@ -21,6 +21,9 @@ proc cvfv_rerun {} {
   puts  "cvfv: compiling verilog"
   vlog  -mfcu  -f fv.flist
 
+  puts  "cvfv: promoting message severity"
+  configure message severity error -id parser-48;  # "unsupported->blackboxed"
+
   puts  "cvfv: cutpointing general 'control points'"
   netlist cutpoint {uvmt_cv32e40s_tb.clknrst_if.reset_n} -module uvmt_cv32e40s_tb
   netlist cutpoint {uvmt_cv32e40s_tb.debug_if.debug_req} -module uvmt_cv32e40s_tb
