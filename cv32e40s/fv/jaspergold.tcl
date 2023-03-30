@@ -25,6 +25,10 @@ proc cvfv_rerun {} {
   # Message Severities
   ## Error on file not found
   set_message -error WNL074
+  ## Allow package parameter treated as localparam, don't care
+  set_message -info VERI-2418
+  ## Allow parameter without default value
+  set_message -info VERI-1818
 
   # Analyze & Elaborate
   analyze  -sv12  -f fv.flist
