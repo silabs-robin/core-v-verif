@@ -46,14 +46,14 @@ class uvme_cv32e40x_vp_sig_writer_seq_c#(
    uvme_cv32e40x_cntxt_c cv32e40x_cntxt;
 
    `uvm_object_utils_begin(uvme_cv32e40x_vp_sig_writer_seq_c#(
-     .AUSER_WIDTH(AUSER_WIDTH),
-     .WUSER_WIDTH(WUSER_WIDTH),
-     .RUSER_WIDTH(RUSER_WIDTH),
-     .ADDR_WIDTH(ADDR_WIDTH),
-     .DATA_WIDTH(DATA_WIDTH),
-     .ID_WIDTH(ID_WIDTH),
-     .ACHK_WIDTH(ACHK_WIDTH),
-     .RCHK_WIDTH(RCHK_WIDTH)
+      .AUSER_WIDTH(AUSER_WIDTH),
+      .WUSER_WIDTH(WUSER_WIDTH),
+      .RUSER_WIDTH(RUSER_WIDTH),
+      .ADDR_WIDTH(ADDR_WIDTH),
+      .DATA_WIDTH(DATA_WIDTH),
+      .ID_WIDTH(ID_WIDTH),
+      .ACHK_WIDTH(ACHK_WIDTH),
+      .RCHK_WIDTH(RCHK_WIDTH)
    ))
    `uvm_object_utils_end
 

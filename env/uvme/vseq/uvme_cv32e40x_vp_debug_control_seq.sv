@@ -40,7 +40,7 @@ class uvme_cv32e40x_vp_debug_control_seq_c#(
    .ID_WIDTH(ID_WIDTH),
    .ACHK_WIDTH(ACHK_WIDTH),
    .RCHK_WIDTH(RCHK_WIDTH)
-) ;
+);
 
    uvme_cv32e40x_cntxt_c cv32e40x_cntxt;
 

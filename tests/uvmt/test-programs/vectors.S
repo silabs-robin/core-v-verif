@@ -15,7 +15,6 @@
 */
 
 .section .vectors, "ax"
-.option push
 .option norvc
 vector_table:
 	j sw_irq_handler
@@ -58,9 +57,6 @@ new vector table (which is at mtvec) */
 /*	j __no_irq_handler */
 /*	j __no_irq_handler */
 /*	j __no_irq_handler */
-
-.option pop
-
 
 .section .text.vecs
 /* exception handling */

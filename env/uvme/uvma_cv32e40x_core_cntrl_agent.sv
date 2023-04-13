@@ -169,7 +169,6 @@ function void uvma_cv32e40x_core_cntrl_agent_c::configure_iss();
   $fwrite(fh, $sformatf("--override %s/nmi_address=0x%08x\n", refpath, cfg.nmi_addr));
   $fwrite(fh, $sformatf("--override %s/debug_address=0x%08x\n", refpath, cfg.dm_halt_addr));
   $fwrite(fh, $sformatf("--override %s/dexc_address=0x%08x\n", refpath, cfg.dm_exception_addr));
-  $fwrite(fh, $sformatf("--override %s/extension_*/tdata1_reset=0x%08x\n", refpath, 'h28001000));
 
   if (cfg.ext_zca_supported) begin
     $fwrite(fh, $sformatf("--override %s/Zca=1\n", refpath));
@@ -194,6 +193,13 @@ function void uvma_cv32e40x_core_cntrl_agent_c::configure_iss();
   end else begin
     $fwrite(fh, $sformatf("--override %s/Zcmt=0\n", refpath));
   end
+
+  if (cfg.ext_zcmb_supported) begin
+    $fwrite(fh, $sformatf("--override %s/Zcmb=1\n", refpath));
+  end else begin
+    $fwrite(fh, $sformatf("--override %s/Zcmb=0\n", refpath));
+  end
+
 
   if (cfg.is_ext_b_supported()) begin
      // Bitmanip version
@@ -249,7 +255,7 @@ function void uvma_cv32e40x_core_cntrl_agent_c::configure_iss();
       $fwrite(fh, $sformatf("--override %s/extension_*/main%0d=%0d\n", refpath, i, cfg.pma_regions[i].main));
       $fwrite(fh, $sformatf("--override %s/extension_*/bufferable%0d=%0d\n", refpath, i, cfg.pma_regions[i].bufferable));
       $fwrite(fh, $sformatf("--override %s/extension_*/cacheable%0d=%0d\n", refpath, i, cfg.pma_regions[i].cacheable));
-      $fwrite(fh, $sformatf("--override %s/extension_*/atomic%0d=%0d\n", refpath, i, 1));
+      $fwrite(fh, $sformatf("--override %s/extension_*/atomic%0d=%0d\n", refpath, i, cfg.pma_regions[i].atomic));
    end
 
    // Enable use of hw reg names instead of abi

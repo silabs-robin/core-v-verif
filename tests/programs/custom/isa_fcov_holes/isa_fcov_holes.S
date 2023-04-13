@@ -5,6 +5,7 @@
 .include "user_define.h"
 .section .text.start
 .globl _start
+.section .text
 #.include "user_init.s"
 .type _start, @function
 
@@ -14,6 +15,8 @@ _start:
 .globl _start_main
 .section .text
 _start_main:
+
+	#define EXP_MISA 0x40001104
 
 ###############################################################################
 # Generated code starts...

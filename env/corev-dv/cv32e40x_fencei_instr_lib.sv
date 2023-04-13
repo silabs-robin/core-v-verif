@@ -184,7 +184,7 @@ class corev_store_fencei_exec_instr_stream extends riscv_load_store_rand_instr_s
     instr_list.push_back(directive);
 
     // Exec
-    instr = riscv_instr::get_rand_instr(.exclude_instr({NOP}), .exclude_group({RV32C, RV32ZCA, RV32ZCB, RV32ZCBB, RV32ZCBM, RV32ZCMP, RV32ZCMT}));
+    instr = riscv_instr::get_rand_instr(.exclude_instr({NOP}), .exclude_group({RV32C}));
     instr.imm.rand_mode(0);
     `DV_CHECK_RANDOMIZE_FATAL(instr, "failed to randomize exec instruction"
     )
@@ -204,7 +204,7 @@ class corev_store_fencei_exec_instr_stream extends riscv_load_store_rand_instr_s
     // Dummy, for replacing exec
     instr = riscv_instr::get_rand_instr(
       .include_category({LOAD, SHIFT, ARITHMETIC, LOGICAL, COMPARE, SYNCH}),
-      .exclude_group({RV32C, RV32ZCA, RV32ZCB, RV32ZCBB, RV32ZCBM, RV32ZCMP, RV32ZCMT}));
+      .exclude_group({RV32C}));
     `DV_CHECK_RANDOMIZE_WITH_FATAL(instr,
       (category inside {LOAD, SHIFT, ARITHMETIC, LOGICAL, COMPARE, SYNCH});
         // Note: Several of the constraints could be relaxed, but it turns really complicated
@@ -303,20 +303,17 @@ class corev_vp_fencei_exec_instr_stream extends riscv_load_store_rand_instr_stre
     instr_list.insert(idx_fencei, instr);
     // Add norvc/rvc guards around the instr after fencei
     directive = corev_directive_instr::type_id::create("corev_directive_instr");
-    directive.directive = ".option push";
+    directive.directive = ".option norvc";
     instr_list.insert(idx_fencei + 1, directive);
     directive = corev_directive_instr::type_id::create("corev_directive_instr");
-    directive.directive = ".option norvc";
-    instr_list.insert(idx_fencei + 2, directive);
-    directive = corev_directive_instr::type_id::create("corev_directive_instr");
-    directive.directive = ".option pop";
-    instr_list.insert(idx_fencei + 4, directive);
+    directive.directive = ".option rvc";
+    instr_list.insert(idx_fencei + 3, directive);
 
     // Add a dummy instr at the top
     instr = riscv_instr::get_rand_instr(
       .exclude_instr({NOP}),
       .include_category({LOAD, SHIFT, ARITHMETIC, LOGICAL, COMPARE, SYNCH}),
-      .exclude_group({RV32C, RV32ZCA, RV32ZCB, RV32ZCBB, RV32ZCBM, RV32ZCMP, RV32ZCMT}));
+      .exclude_group({RV32C}));
     `DV_CHECK_RANDOMIZE_WITH_FATAL(instr,
       (category inside {LOAD, SHIFT, ARITHMETIC, LOGICAL, COMPARE, SYNCH});
         // Note: Several of the constraints could be relaxed, but it turns really complicated
@@ -327,19 +324,15 @@ class corev_vp_fencei_exec_instr_stream extends riscv_load_store_rand_instr_stre
     )
     instr.comment = "vp_fencei_exec: dummy";
     instr.label = label_dummy;
-    // Add pop (nb, reverse order, 4/4)  (on by default if supported, this will otherwise fail if c is not supported)
+    // Add rvc  (nb, reverse order, 3/3)
     directive = corev_directive_instr::type_id::create("corev_directive_instr");
-    directive.directive = ".option pop";
+    directive.directive = ".option rvc";
     instr_list.push_front(directive);
-    // Add instr (nb, reverse order, 3/4)
+    // Add instr  (nb, reverse order, 2/3)
     instr_list.push_front(instr);
-    // Add norvc (nb, reverse order, 2/4)
+    // Add norvc  (nb, reverse order, 1/3)
     directive = corev_directive_instr::type_id::create("corev_directive_instr");
     directive.directive = ".option norvc";
-    instr_list.push_front(directive);
-    // Add push (nb, reverse order, 1/4)
-    directive = corev_directive_instr::type_id::create("corev_directive_instr");
-    directive.directive = ".option push";
     instr_list.push_front(directive);
 
 
@@ -522,7 +515,7 @@ class corev_vp_fencei_exec_instr_stream extends riscv_load_store_rand_instr_stre
   function logic is_ok_target(riscv_instr instr);
     // Note: Could allow 16bit instrs, but that requires more accommodations
     return (
-      (!(instr.group inside {RV32C, RV32ZCA, RV32ZCB, RV32ZCBB, RV32ZCBM, RV32ZCMP, RV32ZCMT}))
+      (instr.group != RV32C)
       && (instr.instr_name != NOP)
       && !((instr.rd == ZERO) && (instr.instr_name inside {ADDI, C_ADDI}))
       && !(instr.rd inside {cfg.reserved_regs, reserved_rd})

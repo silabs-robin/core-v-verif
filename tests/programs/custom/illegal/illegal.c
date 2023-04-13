@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
 
 // This is an illegal instruction that is not decodable (in the C extension space)

@@ -16,8 +16,8 @@
 // SPDX-License-Identifier:Apache-2.0 WITH SHL-2.0
 
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #define  ADDR  0x1A110800  // Repurposing the dbg section because it is otherwise not occupied in this test
 
@@ -41,7 +41,7 @@ int main(void) {
   __asm__ volatile("sw %0, 9(%1)" : "=r"(tmp) : "r"(ADDR));
 
 
-  // Atomics should pass  //TODO:silabs-robin Should _fail_?
+  // Atomics should pass
 
   // Load-reserved should pass
   /* TODO enable when RTL is implemented
