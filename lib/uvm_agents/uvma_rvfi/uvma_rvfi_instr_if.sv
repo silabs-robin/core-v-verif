@@ -165,6 +165,9 @@ interface uvma_rvfi_instr_if_t
   logic                             is_pma_fault;
   logic                             is_fencefencei;
   logic [31:0]                      rvfi_mem_addr_word0highbyte;
+  logic                             is_load_instr;
+  logic                             is_store_instr;
+  logic                             is_loadstore_instr;
 
   logic                             is_nmi_triggered = 0;
 
@@ -228,6 +231,29 @@ interface uvma_rvfi_instr_if_t
     is_pma_fault        <= is_pma_fault_f();
     is_fencefencei      <= is_fencefencei_f();
     rvfi_mem_addr_word0highbyte <= rvfi_mem_addr_word0highbyte_f();
+  end
+
+  always_comb begin
+    is_load_instr <=
+      match_instr(INSTR_REF_LOAD,      INSTR_MASK_LOAD)       ||
+      match_instr(INSTR_REF_CLWSP,     INSTR_MASK_CLWSP)      ||
+      match_instr(INSTR_REF_CLW,       INSTR_MASK_CLW)        ||
+      match_instr(INSTR_REF_CLBU,      INSTR_MASK_CLBU)       ||
+      match_instr(INSTR_REF_CLHU,      INSTR_MASK_CLHU)       ||
+      match_instr(INSTR_REF_CLH,       INSTR_MASK_CLH)        ||
+      match_instr(INSTR_REF_CMPOP,     INSTR_MASK_CMPOP)      ||
+      match_instr(INSTR_REF_CMPOPRET,  INSTR_MASK_CMPOPRET)   ||
+      match_instr(INSTR_REF_CMPOPRETZ, INSTR_MASK_CMPOPRETZ)  ;
+
+    is_store_instr <=
+      match_instr(INSTR_REF_STORE, INSTR_MASK_STORE)  ||
+      match_instr(INSTR_REF_CSWSP, INSTR_MASK_CSWSP)  ||
+      match_instr(INSTR_REF_CSW,   INSTR_MASK_CSW)    ||
+      match_instr(INSTR_REF_CSB,   INSTR_MASK_CSB)    ||
+      match_instr(INSTR_REF_CSH,   INSTR_MASK_CSH)    ||
+      match_instr(INSTR_REF_PUSH,  INSTR_MASK_PUSH)   ;
+
+    is_loadstore_instr <= is_load_instr || is_store_instr;
   end
 
   /**

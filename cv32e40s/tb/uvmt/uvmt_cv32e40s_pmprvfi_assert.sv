@@ -48,7 +48,9 @@ module uvmt_cv32e40s_pmprvfi_assert
   input wire [31:0]  rvfi_csr_mstatus_rdata,
 
   // Debug
-  input wire  rvfi_dbg_mode
+  input wire  rvfi_dbg_mode,
+
+  uvma_rvfi_instr_if_t  rvfi_if
 );
 
 
@@ -222,7 +224,7 @@ module uvmt_cv32e40s_pmprvfi_assert
     .debug_mode     (rvfi_dbg_mode),
     .pmp_req_addr_i ({2'b 00, rvfi_mem_addr}),  // TODO:silabs-robin  Multi-op instructions
     .pmp_req_err_o  ('Z),
-    .pmp_req_type_i (rvfi_mem_wmask ? PMP_ACC_WRITE : PMP_ACC_READ),  // TODO:silabs-robin  Not completely accurate...
+    .pmp_req_type_i (rvfi_if.is_load_instr ? PMP_ACC_READ : PMP_ACC_WRITE ),
     .priv_lvl_i     (privlvl_t'(rvfi_effective_mode)),
 
     .match_status_o (match_status_data),
@@ -264,7 +266,7 @@ module uvmt_cv32e40s_pmprvfi_assert
     .debug_mode     (rvfi_dbg_mode),
     .pmp_req_addr_i ({2'b 00, rvfi_mem_upperaddr}),  // TODO:silabs-robin  Multi-op instructions
     .pmp_req_err_o  ('Z),
-    .pmp_req_type_i (rvfi_mem_wmask ? PMP_ACC_WRITE : PMP_ACC_READ),  // TODO:silabs-robin  Not completely accurate...
+    .pmp_req_type_i (rvfi_if.is_load_instr ? PMP_ACC_READ : PMP_ACC_WRITE ),
     .priv_lvl_i     (privlvl_t'(rvfi_effective_mode)),
 
     .match_status_o (match_status_upperdata),
@@ -743,14 +745,14 @@ module uvmt_cv32e40s_pmprvfi_assert
 
   a_noloadstore_musttrap: assert property (
     rvfi_valid  &&
-    (rvfi_mem_rmask || rvfi_mem_wmask)  &&
+    rvfi_if.is_loadstore_instr  &&
     !match_status_data.is_access_allowed
     |->
     rvfi_trap
   ) else `uvm_error(info_tag, "on access denied we must trap");
 
   a_noloadstore_cause_load: assert property (
-    (rvfi_valid && rvfi_mem_rmask)  &&
+    rvfi_if.is_load_instr  &&
     !match_status_data.is_access_allowed  &&
     rvfi_trap.exception
     |->
@@ -758,7 +760,7 @@ module uvmt_cv32e40s_pmprvfi_assert
   ) else `uvm_error(info_tag, "on load denied the cause must match");
 
   a_noloadstore_cause_store: assert property (
-    (rvfi_valid && rvfi_mem_wmask)  &&
+    rvfi_if.is_store_instr  &&
     !match_status_data.is_access_allowed  &&
     rvfi_trap.exception
     |->
@@ -772,6 +774,8 @@ module uvmt_cv32e40s_pmprvfi_assert
     |->
     rvfi_trap
   ) else `uvm_error(info_tag, "on split-access denied we must trap");
+
+  //TODO:ERROR:silabs-robin  "is_blocked |-> pma_deny || pmp_deny" etc
 
 
   // RWX has reservations  (vplan:RwReserved)

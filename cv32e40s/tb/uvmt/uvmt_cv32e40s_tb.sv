@@ -1324,6 +1324,7 @@ module uvmt_cv32e40s_tb;
         .rvfi_mem_addr  (rvfi_mem_addr [31:0]),
         .rvfi_mem_wmask (rvfi_mem_wmask[ 3:0]),
         .rvfi_mem_rmask (rvfi_mem_rmask[ 3:0]),
+        .rvfi_if        (dut_wrap.cv32e40s_wrapper_i.rvfi_instr_if),
         .*
       );
 
