@@ -48,7 +48,10 @@ module uvmt_cv32e40s_pmprvfi_assert
   input wire [31:0]  rvfi_csr_mstatus_rdata,
 
   // Debug
-  input wire  rvfi_dbg_mode
+  input wire  rvfi_dbg_mode,
+
+  // Support Interfaces
+  uvma_rvfi_instr_if_t  rvfi_if
 );
 
 
@@ -153,12 +156,6 @@ module uvmt_cv32e40s_pmprvfi_assert
     ) : (
       rvfi_pc_rdata + 1
     );
-
-  wire  is_split_datatrans =
-    (rvfi_mem_upperaddr[31:2] != rvfi_mem_addr[31:2]);
-
-  wire  is_split_instrtrans =
-    (rvfi_pc_upperrdata[31:2] != rvfi_pc_rdata[31:2]);
 
   pmp_csr_t  pmp_csr_rvfi_rdata;
   pmp_csr_t  pmp_csr_rvfi_wdata;
@@ -732,7 +729,7 @@ module uvmt_cv32e40s_pmprvfi_assert
 
   a_noexec_splittrap: assert property (
     rvfi_valid  &&
-    is_split_instrtrans  &&
+    rvfi_if.is_split_instrtrans_intended  &&
     !match_status_upperinstr.is_access_allowed
     |->
     rvfi_trap
@@ -767,11 +764,40 @@ module uvmt_cv32e40s_pmprvfi_assert
 
   a_noloadstore_splittrap: assert property (
     rvfi_valid  &&
-    is_split_datatrans  &&
+    rvfi_if.is_split_datatrans_intended  &&
     !match_status_upperdata.is_access_allowed
     |->
     rvfi_trap
   ) else `uvm_error(info_tag, "on split-access denied we must trap");
+
+
+  // RVFI must report what was allowed on the bus  (Not a vplan item)
+
+  a_rvfi_mem_allowed_instr: assert property (
+    rvfi_valid
+    // TODO:ERROR:silabs-robin Will need tweaking, traps etc
+    |->
+    match_status_instr.is_access_allowed
+  ) else `uvm_error(info_tag, "TODO");
+
+  a_rvfi_mem_allowed_data: assert property (
+    rvfi_if.is_mem_act
+    |->
+    match_status_data.is_access_allowed
+  ) else `uvm_error(info_tag, "TODO");
+
+  a_rvfi_mem_allowed_upperinstr: assert property (
+    rvfi_if.is_split_instrtrans_actual
+    // TODO:ERROR:silabs-robin Will need tweaking, traps etc
+    |->
+    match_status_upperinstr.is_access_allowed
+  ) else `uvm_error(info_tag, "TODO");
+
+  a_rvfi_mem_allowed_upper: assert property (
+    rvfi_if.is_split_datatrans_actual
+    |->
+    match_status_upperdata.is_access_allowed
+  ) else `uvm_error(info_tag, "TODO");
 
 
   // RWX has reservations  (vplan:RwReserved)

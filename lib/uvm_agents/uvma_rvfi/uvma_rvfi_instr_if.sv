@@ -159,7 +159,10 @@ interface uvma_rvfi_instr_if_t
   logic                             is_pma_instr_fault;
   logic                             is_instr_bus_valid;
   logic                             is_pushpop;
-  logic                             is_split_datatrans;
+  logic                             is_split_datatrans_actual;
+  logic                             is_split_datatrans_intended;
+  logic                             is_split_instrtrans_actual;
+  logic                             is_split_instrtrans_intended;
   logic                             is_mem_act;
   logic                             is_tablejump_raw;
   logic                             is_pma_fault;
@@ -222,7 +225,10 @@ interface uvma_rvfi_instr_if_t
     is_pma_instr_fault  <= is_pma_instr_fault_f();
     is_instr_bus_valid  <= is_instr_bus_valid_f();
     is_pushpop          <= is_pushpop_f();
-    is_split_datatrans  <= is_split_datatrans_f();
+    is_split_datatrans_actual    <= is_split_datatrans_actual_f();
+    is_split_datatrans_intended  <= is_split_datatrans_intended_f();
+    is_split_instrtrans_actual   <= is_split_instrtrans_actual_f();
+    is_split_instrtrans_intended <= is_split_instrtrans_intended_f();
     is_mem_act          <= is_mem_act_f();
     is_tablejump_raw    <= is_tablejump_raw_f();
     is_pma_fault        <= is_pma_fault_f();
@@ -604,11 +610,23 @@ function automatic logic [31:0] rvfi_mem_addr_word0highbyte_f();
   endcase
 endfunction : rvfi_mem_addr_word0highbyte_f
 
-function automatic logic is_split_datatrans_f();
+function automatic logic is_split_datatrans_actual_f();
   logic [31:0]  low_addr  = rvfi_mem_addr;
   logic [31:0]  high_addr = rvfi_mem_addr_word0highbyte;
   return  is_mem_act && (low_addr[31:2] != high_addr[31:2]);
-endfunction : is_split_datatrans_f
+endfunction : is_split_datatrans_actual_f
+
+function automatic logic is_split_datatrans_intended_f();
+  return 0;  // TODO:ERROR:silabs-robin
+endfunction : is_split_datatrans_intended_f
+
+function automatic logic is_split_instrtrans_actual_f();
+  return 0;  // TODO:ERROR:silabs-robin
+endfunction : is_split_instrtrans_actual_f
+
+function automatic logic is_split_instrtrans_intended_f();
+  return 0;  // TODO:ERROR:silabs-robin
+endfunction : is_split_instrtrans_intended_f
 
 
 endinterface : uvma_rvfi_instr_if_t

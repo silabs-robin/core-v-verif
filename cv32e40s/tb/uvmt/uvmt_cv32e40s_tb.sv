@@ -1324,6 +1324,7 @@ module uvmt_cv32e40s_tb;
         .rvfi_mem_addr  (rvfi_mem_addr [31:0]),
         .rvfi_mem_wmask (rvfi_mem_wmask[ 3:0]),
         .rvfi_mem_rmask (rvfi_mem_rmask[ 3:0]),
+        .rvfi_if        (dut_wrap.cv32e40s_wrapper_i.rvfi_instr_if),
         .*
       );
 
@@ -1380,7 +1381,7 @@ module uvmt_cv32e40s_tb;
         .dbg                  (rvfi_instr_if.rvfi_dbg_mode),
         .jvt_q                (rvfi_csr_jvt_if.rvfi_csr_rdata),
         .load_access          (|rvfi_instr_if.rvfi_mem_rmask),
-        .misaligned_access_i  (rvfi_instr_if.is_split_datatrans),
+        .misaligned_access_i  (rvfi_instr_if.is_split_datatrans_intended), //TODO:ERROR:silabs-robin
         .pma_status_o         (uvmt_cv32e40s_tb.pma_status_rvfidata_word0lowbyte)
       );
 
@@ -1399,7 +1400,7 @@ module uvmt_cv32e40s_tb;
         .dbg                  (rvfi_instr_if.rvfi_dbg_mode),
         .jvt_q                (rvfi_csr_jvt_if.rvfi_csr_rdata),
         .load_access          (|rvfi_instr_if.rvfi_mem_rmask),
-        .misaligned_access_i  (rvfi_instr_if.is_split_datatrans),
+        .misaligned_access_i  (rvfi_instr_if.is_split_datatrans_intended), //TODO:ERROR:silabs-robin
         .pma_status_o         (uvmt_cv32e40s_tb.pma_status_rvfidata_word0highbyte)
       );
 
