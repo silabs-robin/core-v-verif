@@ -29,6 +29,7 @@
 ./uvm_pkg.sv
 ./defines.sv
 
+-f  ${DV_SUPPORT_PATH}/support_pkg.flist
 -f  ${CV_CORE_PKG}/cv32e40s_manifest.flist
 ${DV_UVMA_PATH}/uvma_obi_memory/src/uvma_obi_memory_assert.sv
 ${DV_UVMA_PATH}/uvma_obi_memory/src/uvma_obi_memory_1p2_assert.sv
