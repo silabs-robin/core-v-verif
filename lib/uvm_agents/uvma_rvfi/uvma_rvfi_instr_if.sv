@@ -166,7 +166,6 @@ interface uvma_rvfi_instr_if_t
   logic                             is_pma_instr_fault;
   logic                             is_instr_bus_valid;
   logic                             is_pushpop;
-  logic                             is_split_datatrans;
   logic                             is_mem_act;
   logic                             is_tablejump_raw;
   logic                             is_pma_fault;
@@ -175,6 +174,10 @@ interface uvma_rvfi_instr_if_t
   logic                             is_load_instr;
   logic                             is_store_instr;
   logic                             is_loadstore_instr;
+  logic                             is_split_datatrans_actual;
+  logic                             is_split_datatrans_intended;
+  logic                             is_split_instrtrans_actual;
+  logic                             is_split_instrtrans_intended;
 
   logic                             is_nmi_triggered = 0;
 
@@ -235,7 +238,6 @@ interface uvma_rvfi_instr_if_t
     is_pma_instr_fault  <= is_pma_instr_fault_f();
     is_instr_bus_valid  <= is_instr_bus_valid_f();
     is_pushpop          <= is_pushpop_f();
-    is_split_datatrans  <= is_split_datatrans_f();
     is_mem_act          <= is_mem_act_f();
     is_tablejump_raw    <= is_tablejump_raw_f();
     is_pma_fault        <= is_pma_fault_f();
@@ -243,11 +245,22 @@ interface uvma_rvfi_instr_if_t
     rvfi_mem_addr_word0highbyte <= rvfi_mem_addr_word0highbyte_f();
   end
 
+
   // assigning signals
+
   always_comb begin
     is_load_instr <= 0; // TODO:ERROR:silabs-robin
     is_store_instr <= 0; // TODO:ERROR:silabs-robin
     is_loadstore_instr <= 0; // TODO:ERROR:silabs-robin
+  end
+
+  always_comb begin
+    logic [31:0]  low_addr  = rvfi_mem_addr;
+    logic [31:0]  high_addr = rvfi_mem_addr_word0highbyte;
+    is_split_datatrans_actual    <= is_mem_act && (low_addr[31:2] != high_addr[31:2]);
+    is_split_datatrans_intended  <= 0;  // TODO:ERROR:silabs-robin
+    is_split_instrtrans_actual   <= 0;  // TODO:ERROR:silabs-robin
+    is_split_instrtrans_intended <= 0;  // TODO:ERROR:silabs-robin
   end
 
   /**
@@ -644,12 +657,6 @@ function automatic logic [31:0] rvfi_mem_addr_word0highbyte_f();
       return  addr;
   endcase
 endfunction : rvfi_mem_addr_word0highbyte_f
-
-function automatic logic is_split_datatrans_f();
-  logic [31:0]  low_addr  = rvfi_mem_addr;
-  logic [31:0]  high_addr = rvfi_mem_addr_word0highbyte;
-  return  is_mem_act && (low_addr[31:2] != high_addr[31:2]);
-endfunction : is_split_datatrans_f
 
 
 endinterface : uvma_rvfi_instr_if_t
