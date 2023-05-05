@@ -172,6 +172,9 @@ interface uvma_rvfi_instr_if_t
   logic                             is_pma_fault;
   logic                             is_fencefencei;
   logic [31:0]                      rvfi_mem_addr_word0highbyte;
+  logic                             is_load_instr;
+  logic                             is_store_instr;
+  logic                             is_loadstore_instr;
 
   logic                             is_nmi_triggered = 0;
 
@@ -238,6 +241,13 @@ interface uvma_rvfi_instr_if_t
     is_pma_fault        <= is_pma_fault_f();
     is_fencefencei      <= is_fencefencei_f();
     rvfi_mem_addr_word0highbyte <= rvfi_mem_addr_word0highbyte_f();
+  end
+
+  // assigning signals
+  always_comb begin
+    is_load_instr <= 0; // TODO:ERROR:silabs-robin
+    is_store_instr <= 0; // TODO:ERROR:silabs-robin
+    is_loadstore_instr <= 0; // TODO:ERROR:silabs-robin
   end
 
   /**

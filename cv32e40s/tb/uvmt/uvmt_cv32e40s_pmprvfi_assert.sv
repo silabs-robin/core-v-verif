@@ -1,3 +1,22 @@
+// Copyright 2023 Silicon Labs, Inc.
+//
+// SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+//
+// Licensed under the Solderpad Hardware License v 2.1 (the "License"); you may
+// not use this file except in compliance with the License, or, at your option,
+// the Apache License version 2.0.
+//
+// You may obtain a copy of the License at
+// https://solderpad.org/licenses/SHL-2.1/
+//
+// Unless required by applicable law or agreed to in writing, any work
+// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
 `default_nettype none
 
 
@@ -224,7 +243,7 @@ module uvmt_cv32e40s_pmprvfi_assert
     .debug_mode     (rvfi_dbg_mode),
     .pmp_req_addr_i ({2'b 00, rvfi_mem_addr}),  // TODO:silabs-robin  Multi-op instructions
     .pmp_req_err_o  ('Z),
-    .pmp_req_type_i (rvfi_mem_wmask ? PMP_ACC_WRITE : PMP_ACC_READ),  // TODO:silabs-robin  Not completely accurate...
+    .pmp_req_type_i (rvfi_if.is_store_instr ? PMP_ACC_WRITE : PMP_ACC_READ),
     .priv_lvl_i     (privlvl_t'(rvfi_effective_mode)),
 
     .match_status_o (match_status_data),
@@ -266,7 +285,7 @@ module uvmt_cv32e40s_pmprvfi_assert
     .debug_mode     (rvfi_dbg_mode),
     .pmp_req_addr_i ({2'b 00, rvfi_mem_upperaddr}),  // TODO:silabs-robin  Multi-op instructions
     .pmp_req_err_o  ('Z),
-    .pmp_req_type_i (rvfi_mem_wmask ? PMP_ACC_WRITE : PMP_ACC_READ),  // TODO:silabs-robin  Not completely accurate...
+    .pmp_req_type_i (rvfi_if.is_store_instr ? PMP_ACC_WRITE : PMP_ACC_READ),
     .priv_lvl_i     (privlvl_t'(rvfi_effective_mode)),
 
     .match_status_o (match_status_upperdata),
@@ -744,15 +763,14 @@ module uvmt_cv32e40s_pmprvfi_assert
   // Expected response on missing loadstore permission (vplan:WaitUpdate, vplan:AffectSuccessors)
 
   a_noloadstore_musttrap: assert property (
-    rvfi_valid  &&
-    (rvfi_mem_rmask || rvfi_mem_wmask)  &&
+    rvfi_if.is_loadstore_instr  &&
     !match_status_data.is_access_allowed
     |->
     rvfi_trap
   ) else `uvm_error(info_tag, "on access denied we must trap");
 
   a_noloadstore_cause_load: assert property (
-    (rvfi_valid && rvfi_mem_rmask)  &&
+    rvfi_if.is_load_instr  &&
     !match_status_data.is_access_allowed  &&
     rvfi_trap.exception
     |->
@@ -760,7 +778,7 @@ module uvmt_cv32e40s_pmprvfi_assert
   ) else `uvm_error(info_tag, "on load denied the cause must match");
 
   a_noloadstore_cause_store: assert property (
-    (rvfi_valid && rvfi_mem_wmask)  &&
+    rvfi_if.is_store_instr  &&
     !match_status_data.is_access_allowed  &&
     rvfi_trap.exception
     |->
@@ -774,6 +792,8 @@ module uvmt_cv32e40s_pmprvfi_assert
     |->
     rvfi_trap
   ) else `uvm_error(info_tag, "on split-access denied we must trap");
+
+  //TODO:ERROR:silabs-robin  "is_blocked |-> pma_deny || pmp_deny" etc
 
 
   // RWX has reservations  (vplan:RwReserved)
