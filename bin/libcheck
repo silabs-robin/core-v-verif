@@ -1,0 +1,93 @@
+#!/bin/sh
+
+
+# Copyright 2023 Silicon Laboratories Inc.
+#
+# SPDX-License-Identifier: Apache-2.0 WITH SHL-2.1
+#
+# Licensed under the Solderpad Hardware License v 2.1 (the "License"); you may
+# not use this file except in compliance with the License, or, at your option,
+# the Apache License version 2.0.
+#
+# You may obtain a copy of the License at
+# https://solderpad.org/licenses/SHL-2.1/
+#
+# Unless required by applicable law or agreed to in writing, any work
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# Description:
+#   This script compiles flists from the "lib/" directory.
+#   The purpose is to identify unstated dependencies, e.g. before PR to master.
+#
+# Usage:
+#   Run `./bin/libcheck` to check all flist files.
+#   Run `./bin/libcheck <flist_file_name>` to check one flist.
+#
+# Environment:
+#   Standard setup as per "mk/" readmes.
+
+
+# Setup
+
+# Standard Variables
+CORE_V_VERIF=$(realpath .)
+
+# Path Definitions
+source ${CORE_V_VERIF}/mk/paths.sh
+
+# Simulator Options
+if [ ${CV_SIMULATOR} = xrun ]; then
+  SIMULATOR_OPTIONS="
+    -clean
+    -uvm
+    -uvmhome CDNS-1.2-ML
+    ${CORE_V_VERIF}/lib/uvm_libs/uvm_macros_inc.sv
+  "
+fi
+
+
+# Check
+
+compile() {
+  echo compiling $1
+
+  printf "\nLIBCHECK\n\n" >> ./libcheck.log
+
+  ${CV_SIM_PREFIX} ${CV_SIMULATOR}  \
+    ${SIMULATOR_OPTIONS}  \
+    -f $1  \
+    >> ./libcheck.log 2>&1
+}
+
+check() {
+  if [ $? -gt 0 ]; then
+    echo "  FAIL (read 'libcheck.log' for details)"
+  else
+    echo "  OK"
+  fi
+}
+
+compile_and_check_all() {
+  flists=$(find ./lib/ | grep '\.flist$')
+
+  for i in ${flists}; do
+    compile $i
+    check
+  done
+}
+
+compile_and_check_one() {
+  compile $1
+  check
+}
+
+if [ $# -eq 0 ]; then
+  compile_and_check_all
+else
+  compile_and_check_one $1
+fi
