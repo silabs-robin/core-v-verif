@@ -20,5 +20,12 @@
 // Directories
 +incdir+${DV_UVMA_RVFI_PATH}
 
+// Dependencies
+-f ${DV_UVML_HRTBT_PATH}/uvml_hrtbt_pkg.flist
+-f ${DV_UVML_TRN_PATH}/uvml_trn_pkg.flist
+-f ${DV_UVML_LOGS_PATH}/uvml_logs_pkg.flist
+-f ${DV_UVMA_CORE_CNTRL_PATH}/uvma_core_cntrl_pkg.flist
+-f ${DV_SUPPORT_PATH}/support_pkg.flist
+
 // Files
 ${DV_UVMA_RVFI_PATH}/uvma_rvfi_pkg.sv
