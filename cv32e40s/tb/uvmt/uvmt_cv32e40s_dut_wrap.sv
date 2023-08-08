@@ -43,29 +43,29 @@ module uvmt_cv32e40s_dut_wrap
   import cv32e40s_pkg::*;
 #(
     // DUT (riscv_core) parameters.
-    parameter logic [31:0]           DM_REGION_START                     = 32'hF0000000,
-    parameter logic [31:0]           DM_REGION_END                       = 32'hF0003FFF,
-    parameter lfsr_cfg_t             LFSR0_CFG                           = LFSR_CFG_DEFAULT,
-    parameter lfsr_cfg_t             LFSR1_CFG                           = LFSR_CFG_DEFAULT,
-    parameter lfsr_cfg_t             LFSR2_CFG                           = LFSR_CFG_DEFAULT,
-    parameter m_ext_e                M_EXT                               = M,
-    parameter mseccfg_t              PMP_MSECCFG_RV                      = MSECCFG_DEFAULT,
-    parameter cv32e40s_pkg::b_ext_e  B_EXT                               = cv32e40s_pkg::B_NONE,
-    parameter int                    PMA_NUM_REGIONS                     =  0,
-    parameter pma_cfg_t              PMA_CFG[PMA_NUM_REGIONS-1 : 0]      = '{default:PMA_R_DEFAULT},
-    parameter int                    PMP_NUM_REGIONS                     = 0,
-    parameter pmpncfg_t              PMP_PMPNCFG_RV[PMP_NUM_REGIONS-1:0] = '{default:PMPNCFG_DEFAULT},
-    parameter logic [31:0]           PMP_PMPADDR_RV[PMP_NUM_REGIONS-1:0] = '{default:32'h0},
-    parameter int                    PMP_GRANULARITY                     = 0,
-    parameter logic                  CLIC                                = 0,
-    parameter int                    CLIC_ID_WIDTH                       = 5,
-    parameter int                    DBG_NUM_TRIGGERS                    = 1,
-    parameter rv32_e                 RV32                                = RV32I,
+    parameter logic [31:0]           DM_REGION_START,
+    parameter logic [31:0]           DM_REGION_END,
+    parameter lfsr_cfg_t             LFSR0_CFG,
+    parameter lfsr_cfg_t             LFSR1_CFG,
+    parameter lfsr_cfg_t             LFSR2_CFG,
+    parameter m_ext_e                M_EXT,
+    parameter mseccfg_t              PMP_MSECCFG_RV,
+    parameter cv32e40s_pkg::b_ext_e  B_EXT,
+    parameter int                    PMA_NUM_REGIONS,
+    parameter pma_cfg_t              PMA_CFG[PMA_NUM_REGIONS-1 : 0],
+    parameter int                    PMP_NUM_REGIONS,
+    parameter pmpncfg_t              PMP_PMPNCFG_RV[PMP_NUM_REGIONS-1:0],
+    parameter logic [31:0]           PMP_PMPADDR_RV[PMP_NUM_REGIONS-1:0],
+    parameter int                    PMP_GRANULARITY,
+    parameter logic                  CLIC,
+    parameter int                    CLIC_ID_WIDTH,
+    parameter int                    DBG_NUM_TRIGGERS,
+    parameter rv32_e                 RV32,
 
     // Remaining parameters are used by TB components only
-    parameter INSTR_ADDR_WIDTH    =  32,
-    parameter INSTR_RDATA_WIDTH   =  32,
-    parameter RAM_ADDR_WIDTH      =  20
+    parameter INSTR_ADDR_WIDTH,
+    parameter INSTR_RDATA_WIDTH,
+    parameter RAM_ADDR_WIDTH
   )
   (
     uvma_clknrst_if_t               clknrst_if,
