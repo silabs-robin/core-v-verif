@@ -166,24 +166,27 @@ module uvmt_cv32e40s_dut_wrap
     // --------------------------------------------
     // instantiate the core
     cv32e40s_wrapper #(
-                      .B_EXT                (B_EXT),
-                      .DBG_NUM_TRIGGERS     (DBG_NUM_TRIGGERS),
-                      .DM_REGION_END        (DM_REGION_END),
-                      .DM_REGION_START      (DM_REGION_START),
-                      .LFSR0_CFG            (LFSR0_CFG),
-                      .LFSR1_CFG            (LFSR1_CFG),
-                      .LFSR2_CFG            (LFSR2_CFG),
-                      .M_EXT                (M_EXT),
-                      .PMA_CFG              (PMA_CFG),
-                      .PMA_NUM_REGIONS      (PMA_NUM_REGIONS),
-                      .PMP_GRANULARITY      (PMP_GRANULARITY),
-                      .PMP_MSECCFG_RV       (PMP_MSECCFG_RV),
-                      .PMP_NUM_REGIONS      (PMP_NUM_REGIONS),
-                      .PMP_PMPADDR_RV       (PMP_PMPADDR_RV),
-                      .PMP_PMPNCFG_RV       (PMP_PMPNCFG_RV),
-                      .RV32                 (RV32),
-                      .CLIC                 (CLIC),
-                      .CLIC_ID_WIDTH        (CLIC_ID_WIDTH)
+                      .B_EXT            (B_EXT),
+                      .CLIC             (CLIC),
+                      .CLIC_ID_WIDTH    (CLIC_ID_WIDTH),
+                      .CORE_LOG_ENABLE  (0),  // TODO:silabs-robin
+                      .DBG_NUM_TRIGGERS (DBG_NUM_TRIGGERS),
+                      .DEBUG            (1),  // TODO:silabs-robin
+                      .DM_REGION_END    (DM_REGION_END),
+                      .DM_REGION_START  (DM_REGION_START),
+                      .LFSR0_CFG        (LFSR0_CFG),
+                      .LFSR1_CFG        (LFSR1_CFG),
+                      .LFSR2_CFG        (LFSR2_CFG),
+                      .LIB              (0),
+                      .M_EXT            (M_EXT),
+                      .PMA_CFG          (PMA_CFG),
+                      .PMA_NUM_REGIONS  (PMA_NUM_REGIONS),
+                      .PMP_GRANULARITY  (PMP_GRANULARITY),
+                      .PMP_MSECCFG_RV   (PMP_MSECCFG_RV),
+                      .PMP_NUM_REGIONS  (PMP_NUM_REGIONS),
+                      .PMP_PMPADDR_RV   (PMP_PMPADDR_RV),
+                      .PMP_PMPNCFG_RV   (PMP_PMPNCFG_RV),
+                      .RV32             (RV32)
                       )
     cv32e40s_wrapper_i
         (
