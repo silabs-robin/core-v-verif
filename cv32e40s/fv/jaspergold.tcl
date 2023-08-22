@@ -22,27 +22,48 @@
 proc cvfv_rerun {} {
   clear  -all
 
+
   # Message Severities
+
   ## Error on file not found
   set_message -error WNL074
+
   ## Allow omitted param defaults
   set_message -info VERI-1818
+
   ## Allow parameter treated as localparam
   set_message -info VERI-2418
+
   ## Allow empty port in module declaration
   set_message -info VERI-8026
+
   ## Allow multiplier blackboxing
   set_message -info WNL018
 
+  ## Allow empty filtered coverage bins
+  set_message -info WCG033
+
+  ## Allow empty coverpoint in cross
+  set_message -info WCG034
+
+  ## Allow unsupported "detect_overlap" option.
+  set_message -info WCG045
+
+
   # Analyze & Elaborate
+
   analyze  -sv12  -f fv.flist
   elaborate  -top uvmt_cv32e40s_tb  -extract_covergroup
 
+
   # Clock & Reset
+
   clock  clknrst_if.clk
   reset  ~clknrst_if.reset_n
 
+
   # Assumes
+
   assume  -from_assert  {*_memory_assert_i.u_assert.a_r_after_a}
   assume  -from_assert  {*.obi_*_memory_assert_i.*.a_*par}
   assume  -from_assert  {*integration_assert_i.a_stable_*}
