@@ -19,9 +19,36 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void
+todo_my_test(void) {
+  printf("TODO my test\n");
+  exit(EXIT_SUCCESS);
+}
+
+__attribute__(( naked, aligned(64) ))
+void
+jvt_table(void) {
+  __asm__ volatile(
+    R"(
+      todo_my_test
+    )"
+  );
+}
+
+static void
+set_jvt(void) {
+  __asm__ volatile(
+    "csrw  jvt,  %[jvt_table]"
+    : : [jvt_table] "r" (jvt_table)
+  );
+}
+
 int
 main(void) {
-  printf("Hello pmp zcmt\n");
+  printf("running 'pmp_zcmt' test\n");
+
+  set_jvt();
+  __asm__ volatile("cm.jt 0");
 
   return EXIT_SUCCESS;
 }
