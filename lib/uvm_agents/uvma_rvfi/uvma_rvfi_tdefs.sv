@@ -25,6 +25,7 @@ typedef enum bit[MODE_WL-1:0] {
    UVMA_RVFI_M_MODE        = 3
 } uvma_rvfi_mode;
 
+<<<<<<< HEAD
 
 typedef struct packed {
    longint unsigned         nret_id;
@@ -79,6 +80,24 @@ typedef union {
     st_rvfi rvfi;
     bit [63:0] array [`ST_NUM_WORDS-1:0] ;
 } union_rvfi;
+=======
+typedef struct packed {
+  logic [10:0] cause;
+  logic        interrupt;
+  logic        exception;
+  logic        intr;
+} rvfi_intr_t;
+
+typedef struct packed {
+  logic        clicptr;
+  logic [1:0]  cause_type;
+  logic [2:0]  debug_cause;
+  logic [5:0]  exception_cause;
+  logic        debug;
+  logic        exception;
+  logic        trap;
+} rvfi_trap_t;
+>>>>>>> cv32e40s/release
 
 function string get_mode_str(uvma_rvfi_mode mode);
    case (mode)

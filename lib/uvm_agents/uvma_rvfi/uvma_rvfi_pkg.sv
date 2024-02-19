@@ -57,7 +57,10 @@ package uvma_rvfi_pkg;
    // Agent components
    `include "uvma_rvfi_mon_trn_logger.sv"
    `include "uvma_rvfi_instr_mon.sv"
+<<<<<<< HEAD
    `include "uvma_rvfi_utils.sv"
+=======
+>>>>>>> cv32e40s/release
    `include "uvma_rvfi_agent.sv"
 
 endpackage : uvma_rvfi_pkg
