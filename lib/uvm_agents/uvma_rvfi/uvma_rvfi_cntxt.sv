@@ -30,7 +30,12 @@ class uvma_rvfi_cntxt_c#(int ILEN=DEFAULT_ILEN,
    virtual uvma_rvfi_instr_if_t#(ILEN,XLEN) instr_vif[];
 
    // Handle to CSR interfaces
+<<<<<<< HEAD
    virtual uvma_rvfi_csr_if_t#(XLEN)        csr_vif[string][];
+=======
+   virtual uvma_rvfi_csr_if#(XLEN)       csr_vif[string][];
+   virtual uvma_rvfi_unified_csr_if#(4096,XLEN) csr_unified_vif[];
+>>>>>>> 2decd1ce0a10c6a03b723b4fd0e95622d0feb41e
 
    // Events
    uvm_event  sample_cfg_e;

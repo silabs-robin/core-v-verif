@@ -53,6 +53,7 @@ class uvml_sb_cntxt_c#(
    realtime          avg_latency            = 0;
 
    // Events
+<<<<<<< HEAD
    // FIXME: why doesn't Questa like parameterized uvm_events?
 `ifndef QUESTA_VSIM
    uvm_event #(T_TRN) exp_observed_e;
@@ -61,6 +62,10 @@ class uvml_sb_cntxt_c#(
    uvm_event          exp_observed_e;
    uvm_event          act_observed_e;
 `endif // QUESTA_VSIM
+=======
+   uvm_event exp_observed_e;
+   uvm_event act_observed_e;
+>>>>>>> 2decd1ce0a10c6a03b723b4fd0e95622d0feb41e
 
 
    `uvm_object_param_utils_begin(uvml_sb_cntxt_c#(T_TRN))
